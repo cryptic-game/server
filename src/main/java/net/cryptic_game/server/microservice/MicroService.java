@@ -22,7 +22,8 @@ import net.cryptic_game.server.socket.SocketServerUtils;
 public class MicroService {
 
 	// open requests of client
-	private static Map<UUID, Channel> open = new HashMap<UUID, Channel>();
+	private static Map<UUID, Channel> webSocketOpen = new HashMap<UUID, Channel>();
+	private static Map<UUID, Channel> httpOpen = new HashMap<UUID, Channel>();
 	
 	// online microservices
 	private static List<MicroService> services = new ArrayList<MicroService>();
@@ -61,7 +62,21 @@ public class MicroService {
 
 		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
 
-		open.put(tag, sender);
+		webSocketOpen.put(tag, sender);
+	}
+	
+	public void receiveHTTP(Channel channel, JSONArray endpoint, JSONObject input) {
+		UUID tag = UUID.randomUUID();
+
+		Map<String, Object> jsonMap = new HashMap<String, Object>();
+
+		jsonMap.put("tag", tag.toString());
+		jsonMap.put("data", input);
+		jsonMap.put("endpoint", endpoint);
+
+		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
+
+		httpOpen.put(tag, channel);
 	}
 
 	/**
@@ -76,9 +91,10 @@ public class MicroService {
 					&& output.get("data") instanceof JSONObject) {
 				UUID tag = UUID.fromString((String) output.get("tag"));
 
-				if (open.containsKey(tag)) {
-					SocketServerUtils.sendJsonToClient(open.get(tag), (JSONObject) output.get("data"));
-					open.remove(tag);
+				if (webSocketOpen.containsKey(tag)) {
+					SocketServerUtils.sendJsonToClient(webSocketOpen.remove(tag), (JSONObject) output.get("data"));
+				} else if(httpOpen.containsKey(tag)) {
+					SocketServerUtils.sendJsonToHTTPClient(httpOpen.remove(tag), (JSONObject) output.get("data"));
 				}
 			}
 		} catch (ClassCastException e) {
