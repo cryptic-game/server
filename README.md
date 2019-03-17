@@ -25,9 +25,9 @@ Run it with `java -jar target/server-0.0.1-SNAPSHOT.jar` .
 
 ## Docker
 
-### Docker-Hub
+### Docker Hub
 
-Work in progres...
+Pull the docker-image from [Docker Hub](https://hub.docker.com/r/useto/cryptic-game-server)!
 
 ## documentation
 
