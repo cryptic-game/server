@@ -35,6 +35,7 @@ public class SocketServerUtils {
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
 				copiedBuffer(responseMessage.getBytes()));
 
+		response.headers().set(HttpHeaders.Names.SERVER, "cryptic-game-server");
 		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, responseMessage.length());
 		

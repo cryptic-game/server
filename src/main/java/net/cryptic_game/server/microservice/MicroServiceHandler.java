@@ -27,7 +27,12 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
 					if (action.equals("register")) {
 						if (obj.containsKey("name") && obj.get("name") instanceof String) {
-							MicroService.register((String) obj.get("name"), ctx.channel());
+							boolean auth = false;
+							if (obj.containsKey("auth") && obj.get("auth") instanceof Boolean) {
+								auth = (Boolean) obj.get("auth");
+							}
+							
+							MicroService.register((String) obj.get("name"), ctx.channel(), auth);
 						} else {
 							this.error(ctx.channel(), "name not found");
 						}
@@ -43,7 +48,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 	}
 
 	/**
-	 * send error to microservice 
+	 * send error to microservice
 	 * 
 	 * @param channel channel of receiver
 	 * @param error

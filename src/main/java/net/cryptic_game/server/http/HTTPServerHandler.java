@@ -16,39 +16,54 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import net.cryptic_game.server.client.Client;
+import net.cryptic_game.server.client.ClientType;
 import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 
 public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		Channel channel = ctx.channel();
 		if (msg instanceof FullHttpRequest) {
 			FullHttpRequest request = (FullHttpRequest) msg;
 
+			if (request.getMethod().equals(HttpMethod.GET)) {
+				Map<String, Integer> jsonMap = new HashMap<String, Integer>();
+
+				jsonMap.put("online", Client.getOnlineCount());
+
+				SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
+
+				return;
+			}
+
 			String payload = request.content().toString(Charset.forName("utf-8"));
 
 			try {
 				JSONObject input = (JSONObject) new JSONParser().parse(payload);
 
-				String[] args = request.uri().substring(1).split("/");
+				if (request.uri().length() > 1) {
+					String[] args = request.uri().substring(1).split("/");
 
-				if (args.length > 0) {
-					MicroService ms = MicroService.get(args[0]);
+					if (args.length > 0) {
+						MicroService ms = MicroService.get(args[0]);
 
-					if (ms != null) {
-						JSONArray endpoint = new JSONArray();
+						if (ms != null) {
+							JSONArray endpoint = new JSONArray();
 
-						for (int i = 1; i < args.length; i++) {
-							endpoint.add(args[i]);
+							for (int i = 1; i < args.length; i++) {
+								endpoint.add(args[i]);
+							}
+
+							ms.receive(Client.getClient(channel), endpoint, input);
+							return;
 						}
-
-						ms.receiveHTTP(channel, endpoint, input);
-						return;
 					}
 				}
 			} catch (ParseException e) {
@@ -70,4 +85,14 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 				copiedBuffer(cause.getMessage().getBytes())));
 	}
 
+	@Override
+	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+		Client.addClient(ctx.channel(), ClientType.HTTP);
+	}
+
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+		Client.removeClient(ctx.channel());
+	}
+	
 }

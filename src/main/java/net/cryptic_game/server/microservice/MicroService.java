@@ -10,6 +10,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import io.netty.channel.Channel;
+import net.cryptic_game.server.client.Client;
+import net.cryptic_game.server.config.Config;
+import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.socket.SocketServerUtils;
 
 /**
@@ -22,18 +25,23 @@ import net.cryptic_game.server.socket.SocketServerUtils;
 public class MicroService {
 
 	// open requests of client
-	private static Map<UUID, Channel> webSocketOpen = new HashMap<UUID, Channel>();
-	private static Map<UUID, Channel> httpOpen = new HashMap<UUID, Channel>();
-	
+	private static Map<UUID, Client> open = new HashMap<UUID, Client>();
+
 	// online microservices
 	private static List<MicroService> services = new ArrayList<MicroService>();
 
 	private String name; // name of ms
 	private Channel channel; // socket-channel of ms
+	private boolean auth;
 
-	public MicroService(String name, Channel channel) {
+	public MicroService(String name, Channel channel, boolean auth) {
 		this.name = name;
 		this.channel = channel;
+		this.auth = auth;
+	}
+
+	public MicroService(String name, Channel channel) {
+		this(name, channel, true);
 	}
 
 	public String getName() {
@@ -44,14 +52,18 @@ public class MicroService {
 		return channel;
 	}
 
+	public boolean needAuth() {
+		return auth;
+	}
+
 	/**
 	 * send data to ms
 	 * 
-	 * @param sender channel of client (for response)
+	 * @param sender   channel of client (for response)
 	 * @param endpoint endpoint on ms (string-array)
-	 * @param input data sending to ms
+	 * @param input    data sending to ms
 	 */
-	public void recive(Channel sender, JSONArray endpoint, JSONObject input) {
+	public void receive(Client client, JSONArray endpoint, JSONObject input) {
 		UUID tag = UUID.randomUUID();
 
 		Map<String, Object> jsonMap = new HashMap<String, Object>();
@@ -60,41 +72,58 @@ public class MicroService {
 		jsonMap.put("data", input);
 		jsonMap.put("endpoint", endpoint);
 
-		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
-
-		webSocketOpen.put(tag, sender);
-	}
-	
-	public void receiveHTTP(Channel channel, JSONArray endpoint, JSONObject input) {
-		UUID tag = UUID.randomUUID();
-
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
-
-		jsonMap.put("tag", tag.toString());
-		jsonMap.put("data", input);
-		jsonMap.put("endpoint", endpoint);
+		if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+			if (this.needAuth() && client.isValid()) {
+				jsonMap.put("user", client.getUser());
+			} else if (this.needAuth() && !client.isValid()) {
+				return;
+			}
+		} else {
+			jsonMap.put("user", "");
+		}
 
 		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
 
-		httpOpen.put(tag, channel);
+		open.put(tag, client);
 	}
 
 	/**
 	 * send data back to client
 	 * 
 	 * param output data from ms
+	 * 
 	 * @return success
 	 */
 	public boolean send(JSONObject output) {
 		try {
-			if (output.containsKey("tag") && output.get("tag") instanceof String && output.containsKey("data")
-					&& output.get("data") instanceof JSONObject) {
-				UUID tag = UUID.fromString((String) output.get("tag"));
+			if (output.containsKey("data") && output.get("data") instanceof JSONObject) {
+				JSONObject data = (JSONObject) output.get("data");
+				Client client = null;
+				if (output.containsKey("tag") && output.get("tag") instanceof String) {
+					UUID tag = UUID.fromString((String) output.get("tag"));
 
-				if (webSocketOpen.containsKey(tag)) {
-					SocketServerUtils.sendJsonToClient(webSocketOpen.remove(tag), (JSONObject) output.get("data"));
-				} else if(httpOpen.containsKey(tag)) {
-					SocketServerUtils.sendJsonToHTTPClient(httpOpen.remove(tag), (JSONObject) output.get("data"));
+					client = open.get(tag);
+				} else if (output.containsKey("user") && output.get("user") instanceof String) {
+					UUID user = UUID.fromString((String) output.get("user"));
+
+					client = Client.getClient(user);
+				}
+
+				if (client != null) {
+					if (this.getName().equals("user") && data.containsKey("user")
+							&& data.get("user") instanceof String) {
+						client.setUser(UUID.fromString((String) data.get("user")));
+					}
+					client.send(data);
+					return true;
+				}
+
+				if (output.containsKey("ms") && output.get("ms") instanceof String) {
+					MicroService ms = MicroService.get((String) output.get("ms"));
+
+					if (ms != null) {
+						ms.receiveFromMicroService(this, data);
+					}
 				}
 			}
 		} catch (ClassCastException e) {
@@ -103,13 +132,28 @@ public class MicroService {
 	}
 
 	/**
+	 * receives data from another microservice no requests
+	 * 
+	 * @param ms   microservice
+	 * @param data data of sender
+	 */
+	private void receiveFromMicroService(MicroService ms, JSONObject data) {
+		Map<String, Object> jsonMap = new HashMap<String, Object>();
+
+		jsonMap.put("ms", ms.getName());
+		jsonMap.put("data", data);
+
+		SocketServerUtils.sendJson(this.getChannel(), data);
+	}
+
+	/**
 	 * register microservice
 	 * 
-	 * @param name name of ms
+	 * @param name    name of ms
 	 * @param channel channel of ms
 	 */
-	public static void register(String name, Channel channel) {
-		services.add(new MicroService(name, channel));
+	public static void register(String name, Channel channel, boolean auth) {
+		services.add(new MicroService(name, channel, auth));
 	}
 
 	/**

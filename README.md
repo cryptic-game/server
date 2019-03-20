@@ -22,6 +22,7 @@ Run it with `java -jar target/server-0.0.1-SNAPSHOT.jar` .
 | WEBSOCKET_HOST | 0.0.0.0       |
 | WEBSOCKET_PORT | 80            |
 | HTTP_PORT      | 8080          |
+| AUTH_ENABLED   | true          |
 
 ## Docker
 

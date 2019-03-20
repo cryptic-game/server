@@ -14,12 +14,12 @@ import net.cryptic_game.server.websocket.WebSocketServerInitializer;
  * 
  * @author use-to
  * @author cryptic-game.net
- * @version 0.0.1-SNAPSHOT
+ * @version 0.0.2-SNAPSHOT
  * 
  */
 
 public class App {
-
+	
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 
