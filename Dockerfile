@@ -12,4 +12,4 @@ ADD . /app/
 
 RUN mvn clean install
 
-CMD java -jar target/server-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+CMD java -jar target/server-0.0.2-SNAPSHOT-jar-with-dependencies.jar
