@@ -26,13 +26,8 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 					String action = (String) obj.get("action");
 
 					if (action.equals("register")) {
-						if (obj.containsKey("name") && obj.get("name") instanceof String) {
-							boolean auth = false;
-							if (obj.containsKey("auth") && obj.get("auth") instanceof Boolean) {
-								auth = (Boolean) obj.get("auth");
-							}
-							
-							MicroService.register((String) obj.get("name"), ctx.channel(), auth);
+						if (obj.containsKey("name") && obj.get("name") instanceof String) {							
+							MicroService.register((String) obj.get("name"), ctx.channel());
 						} else {
 							this.error(ctx.channel(), "name not found");
 						}

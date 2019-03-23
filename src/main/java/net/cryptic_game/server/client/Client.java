@@ -2,22 +2,22 @@ package net.cryptic_game.server.client;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.json.simple.JSONObject;
 
 import io.netty.channel.Channel;
 import net.cryptic_game.server.socket.SocketServerUtils;
+import net.cryptic_game.server.user.User;
 
 public class Client {
 
 	private static List<Client> clients = new ArrayList<Client>();
 
-	private UUID user;
+	private User user;
 	private Channel channel;
 	private ClientType type;
 
-	private Client(UUID user, Channel channel, ClientType type) {
+	private Client(User user, Channel channel, ClientType type) {
 		this.user = user;
 		this.channel = channel;
 
@@ -28,7 +28,7 @@ public class Client {
 		this(null, channel, type);
 	}
 
-	public UUID getUser() {
+	public User getUser() {
 		return user;
 	}
 
@@ -36,7 +36,7 @@ public class Client {
 		return channel;
 	}
 
-	public void setUser(UUID user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 
@@ -66,7 +66,7 @@ public class Client {
 		return null;
 	}
 
-	public static Client getClient(UUID user) {
+	public static Client getClient(User user) {
 		for (Client client : clients) {
 			if (client.getUser().equals(user)) {
 				return client;
@@ -80,7 +80,7 @@ public class Client {
 		return getClient(channel) != null;
 	}
 
-	public static void login(Channel channel, UUID user) {
+	public static void login(Channel channel, User user) {
 		Client client = getClient(channel);
 
 		if (client != null) {

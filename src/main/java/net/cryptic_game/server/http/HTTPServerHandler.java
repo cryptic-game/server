@@ -11,9 +11,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.base64.Base64;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
@@ -23,6 +25,7 @@ import net.cryptic_game.server.client.Client;
 import net.cryptic_game.server.client.ClientType;
 import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
+import net.cryptic_game.server.user.User;
 
 public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
@@ -30,7 +33,9 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		Channel channel = ctx.channel();
-		if (msg instanceof FullHttpRequest) {
+		Client client = Client.getClient(channel);
+
+		if (client != null && msg instanceof FullHttpRequest) {
 			FullHttpRequest request = (FullHttpRequest) msg;
 
 			if (request.getMethod().equals(HttpMethod.GET)) {
@@ -43,40 +48,69 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 
-			String payload = request.content().toString(Charset.forName("utf-8"));
+			String auth = request.headers().get("Authorization");
 
-			try {
-				JSONObject input = (JSONObject) new JSONParser().parse(payload);
-
-				if (request.uri().length() > 1) {
-					String[] args = request.uri().substring(1).split("/");
-
-					if (args.length > 0) {
-						MicroService ms = MicroService.get(args[0]);
-
-						if (ms != null) {
-							JSONArray endpoint = new JSONArray();
-
-							for (int i = 1; i < args.length; i++) {
-								endpoint.add(args[i]);
-							}
-
-							ms.receive(Client.getClient(channel), endpoint, input);
-							return;
-						}
-					}
-				}
-			} catch (ParseException e) {
+			if (auth == null) {
+				error(channel, "permissions denied");
+				return;
+			} else if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
+				error(channel, "invalid authorization");
 			}
 
-			Map<String, String> jsonMap = new HashMap<String, String>();
+			String tuple = Base64.decode(Unpooled.copiedBuffer(auth.split(" ")[1].getBytes(Charset.forName("utf-8")))).toString(Charset.forName("utf-8"));
 
-			jsonMap.put("error", "unsupportet format");
+			if (tuple.contains(":")) {
+				String name = tuple.split(":")[0];
+				String password = tuple.substring(name.length() + 1, tuple.length());
 
-			SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
+				User user = User.get(name);
+
+				if (user != null && user.checkPassword(password)) {
+					client.setUser(user);
+
+					String payload = request.content().toString(Charset.forName("utf-8"));
+
+					try {
+						JSONObject input = (JSONObject) new JSONParser().parse(payload);
+
+						if (request.uri().length() > 1) {
+							String[] args = request.uri().substring(1).split("/");
+
+							if (args.length > 0) {
+								MicroService ms = MicroService.get(args[0]);
+
+								if (ms != null) {
+									JSONArray endpoint = new JSONArray();
+
+									for (int i = 1; i < args.length; i++) {
+										endpoint.add(args[i]);
+									}
+
+									ms.receive(client, endpoint, input);
+									return;
+								}
+							}
+						}
+					} catch (ParseException e) {
+					}
+				} else {
+					error(channel, "permissions denied");
+					return;
+				}
+			}
+
+			error(channel, "unsupportet format");
 		} else {
 			super.channelRead(ctx, msg);
 		}
+	}
+
+	private void error(Channel channel, String error) {
+		Map<String, String> jsonMap = new HashMap<String, String>();
+
+		jsonMap.put("error", error);
+
+		SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
 	}
 
 	@Override
@@ -94,5 +128,5 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
 		Client.removeClient(ctx.channel());
 	}
-	
+
 }

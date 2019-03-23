@@ -17,7 +17,8 @@ public enum DefaultConfig {
 	MSSOCKET_HOST("127.0.0.1"),
 	MSSOCKET_PORT(1239),
 	HTTP_PORT(8080),
-	AUTH_ENABLED(true);
+	AUTH_ENABLED(true), 
+	STORAGE_LOCATION("data/");
 	
 	
 	private Object value;

@@ -32,16 +32,10 @@ public class MicroService {
 
 	private String name; // name of ms
 	private Channel channel; // socket-channel of ms
-	private boolean auth;
-
-	public MicroService(String name, Channel channel, boolean auth) {
-		this.name = name;
-		this.channel = channel;
-		this.auth = auth;
-	}
 
 	public MicroService(String name, Channel channel) {
-		this(name, channel, true);
+		this.name = name;
+		this.channel = channel;
 	}
 
 	public String getName() {
@@ -50,10 +44,6 @@ public class MicroService {
 
 	public Channel getChannel() {
 		return channel;
-	}
-
-	public boolean needAuth() {
-		return auth;
 	}
 
 	/**
@@ -73,10 +63,10 @@ public class MicroService {
 		jsonMap.put("endpoint", endpoint);
 
 		if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-			if (this.needAuth() && client.isValid()) {
-				jsonMap.put("user", client.getUser());
-			} else if (this.needAuth() && !client.isValid()) {
+			if (!client.isValid()) {
 				return;
+			} else {
+				jsonMap.put("user", client.getUser().getUUID().toString());
 			}
 		} else {
 			jsonMap.put("user", "");
@@ -98,31 +88,21 @@ public class MicroService {
 		try {
 			if (output.containsKey("data") && output.get("data") instanceof JSONObject) {
 				JSONObject data = (JSONObject) output.get("data");
-				Client client = null;
+
 				if (output.containsKey("tag") && output.get("tag") instanceof String) {
 					UUID tag = UUID.fromString((String) output.get("tag"));
 
-					client = open.get(tag);
-				} else if (output.containsKey("user") && output.get("user") instanceof String) {
-					UUID user = UUID.fromString((String) output.get("user"));
-
-					client = Client.getClient(user);
-				}
-
-				if (client != null) {
-					if (this.getName().equals("user") && data.containsKey("user")
-							&& data.get("user") instanceof String) {
-						client.setUser(UUID.fromString((String) data.get("user")));
-					}
+					Client client = open.get(tag);
 					client.send(data);
 					return true;
 				}
 
-				if (output.containsKey("ms") && output.get("ms") instanceof String) {
+				if (output.containsKey("ms") && output.get("ms") instanceof String && output.containsKey("tag")
+						&& output.get("tag") instanceof String) {
 					MicroService ms = MicroService.get((String) output.get("ms"));
 
 					if (ms != null) {
-						ms.receiveFromMicroService(this, data);
+						ms.receiveFromMicroService(this, UUID.fromString((String) output.get("tag")), data);
 					}
 				}
 			}
@@ -137,13 +117,14 @@ public class MicroService {
 	 * @param ms   microservice
 	 * @param data data of sender
 	 */
-	private void receiveFromMicroService(MicroService ms, JSONObject data) {
+	private void receiveFromMicroService(MicroService ms, UUID tag, JSONObject data) {
 		Map<String, Object> jsonMap = new HashMap<String, Object>();
 
 		jsonMap.put("ms", ms.getName());
+		jsonMap.put("tag", tag);
 		jsonMap.put("data", data);
 
-		SocketServerUtils.sendJson(this.getChannel(), data);
+		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
 	}
 
 	/**
@@ -152,8 +133,8 @@ public class MicroService {
 	 * @param name    name of ms
 	 * @param channel channel of ms
 	 */
-	public static void register(String name, Channel channel, boolean auth) {
-		services.add(new MicroService(name, channel, auth));
+	public static void register(String name, Channel channel) {
+		services.add(new MicroService(name, channel));
 	}
 
 	/**
