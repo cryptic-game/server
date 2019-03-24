@@ -23,6 +23,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import net.cryptic_game.server.client.Client;
 import net.cryptic_game.server.client.ClientType;
+import net.cryptic_game.server.config.Config;
+import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.User;
@@ -65,7 +67,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
 				User user = User.get(name);
 
-				if (user != null && user.checkPassword(password)) {
+				if (user != null && user.checkPassword(password) || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
 					client.setUser(user);
 
 					String payload = request.content().toString(Charset.forName("utf-8"));

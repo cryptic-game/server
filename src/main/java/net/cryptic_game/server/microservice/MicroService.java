@@ -21,7 +21,6 @@ import net.cryptic_game.server.socket.SocketServerUtils;
  * @author use-to
  *
  */
-
 public class MicroService {
 
 	// open requests of client
