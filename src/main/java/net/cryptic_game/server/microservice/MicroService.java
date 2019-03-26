@@ -14,6 +14,7 @@ import net.cryptic_game.server.client.Client;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.socket.SocketServerUtils;
+import net.cryptic_game.server.user.User;
 
 /**
  * microservice wrapper
@@ -68,7 +69,7 @@ public class MicroService {
 				jsonMap.put("user", client.getUser().getUUID().toString());
 			}
 		} else {
-			jsonMap.put("user", "");
+			jsonMap.put("user", UUID.fromString("00000000-0000-0000-0000-000000000000").toString());
 		}
 
 		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
@@ -173,6 +174,18 @@ public class MicroService {
 			}
 		}
 		return null;
+	}
+
+	public static void sendToUser(UUID user, JSONObject data) {
+		User userAccount = User.get(user);
+
+		if (userAccount != null) {
+			Client clientOfUser = Client.getClient(userAccount);
+			
+			if (clientOfUser != null) {
+				clientOfUser.send(data);
+			}
+		}
 	}
 
 }

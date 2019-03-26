@@ -50,55 +50,64 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 
-			String auth = request.headers().get("Authorization");
+			boolean authSuccess = false;
 
-			if (auth == null) {
-				error(channel, "permissions denied");
-				return;
-			} else if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
-				error(channel, "invalid authorization");
-			}
+			if (!Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+				String auth = request.headers().get("Authorization");
 
-			String tuple = Base64.decode(Unpooled.copiedBuffer(auth.split(" ")[1].getBytes(Charset.forName("utf-8")))).toString(Charset.forName("utf-8"));
-
-			if (tuple.contains(":")) {
-				String name = tuple.split(":")[0];
-				String password = tuple.substring(name.length() + 1, tuple.length());
-
-				User user = User.get(name);
-
-				if (user != null && user.checkPassword(password) || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-					client.setUser(user);
-
-					String payload = request.content().toString(Charset.forName("utf-8"));
-
-					try {
-						JSONObject input = (JSONObject) new JSONParser().parse(payload);
-
-						if (request.uri().length() > 1) {
-							String[] args = request.uri().substring(1).split("/");
-
-							if (args.length > 0) {
-								MicroService ms = MicroService.get(args[0]);
-
-								if (ms != null) {
-									JSONArray endpoint = new JSONArray();
-
-									for (int i = 1; i < args.length; i++) {
-										endpoint.add(args[i]);
-									}
-
-									ms.receive(client, endpoint, input);
-									return;
-								}
-							}
-						}
-					} catch (ParseException e) {
-					}
-				} else {
+				if (auth == null) {
 					error(channel, "permissions denied");
 					return;
+				} else if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
+					error(channel, "invalid authorization");
 				}
+
+				String tuple = Base64
+						.decode(Unpooled.copiedBuffer(auth.split(" ")[1].getBytes(Charset.forName("utf-8"))))
+						.toString(Charset.forName("utf-8"));
+
+				if (tuple.contains(":")) {
+					String name = tuple.split(":")[0];
+					String password = tuple.substring(name.length() + 1, tuple.length());
+
+					User user = User.get(name);
+
+					if (user.checkPassword(password)) {
+						authSuccess = true;
+						client.setUser(user);
+					}
+				}
+			}
+
+			if (authSuccess || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+				String payload = request.content().toString(Charset.forName("utf-8"));
+
+				try {
+					JSONObject input = (JSONObject) new JSONParser().parse(payload);
+
+					if (request.uri().length() > 1) {
+						String[] args = request.uri().substring(1).split("/");
+
+						if (args.length > 0) {
+							MicroService ms = MicroService.get(args[0]);
+
+							if (ms != null) {
+								JSONArray endpoint = new JSONArray();
+
+								for (int i = 1; i < args.length; i++) {
+									endpoint.add(args[i]);
+								}
+
+								ms.receive(client, endpoint, input);
+								return;
+							}
+						}
+					}
+				} catch (ParseException e) {
+				}
+			} else {
+				error(channel, "permissions denied");
+				return;
 			}
 
 			error(channel, "unsupportet format");

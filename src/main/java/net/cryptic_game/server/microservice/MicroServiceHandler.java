@@ -2,6 +2,7 @@ package net.cryptic_game.server.microservice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -26,8 +27,16 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 					String action = (String) obj.get("action");
 
 					if (action.equals("register")) {
-						if (obj.containsKey("name") && obj.get("name") instanceof String) {							
+						if (obj.containsKey("name") && obj.get("name") instanceof String) {
 							MicroService.register((String) obj.get("name"), ctx.channel());
+						} else {
+							this.error(ctx.channel(), "name not found");
+						}
+					} else if (action.equals("address")) {
+						if (obj.containsKey("user") && obj.get("user") instanceof String && obj.containsKey("data")
+								&& obj.get("data") instanceof JSONObject) {
+							MicroService.sendToUser(UUID.fromString((String) obj.get("user")),
+									(JSONObject) obj.get("data"));
 						} else {
 							this.error(ctx.channel(), "name not found");
 						}

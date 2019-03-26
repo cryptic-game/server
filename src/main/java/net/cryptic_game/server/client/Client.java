@@ -68,7 +68,7 @@ public class Client {
 
 	public static Client getClient(User user) {
 		for (Client client : clients) {
-			if (client.getUser().equals(user)) {
+			if (client.getUser().getUUID().equals(user.getUUID())) {
 				return client;
 			}
 		}
