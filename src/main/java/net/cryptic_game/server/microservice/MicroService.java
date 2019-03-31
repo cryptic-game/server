@@ -98,11 +98,11 @@ public class MicroService {
 				}
 
 				if (output.containsKey("ms") && output.get("ms") instanceof String && output.containsKey("tag")
-						&& output.get("tag") instanceof String) {
+						&& output.get("tag") instanceof String && output.containsKey("endpoint") && output.get("endpoint") instanceof JSONArray) {
 					MicroService ms = MicroService.get((String) output.get("ms"));
 
 					if (ms != null) {
-						ms.receiveFromMicroService(this, UUID.fromString((String) output.get("tag")), data);
+						ms.receiveFromMicroService(this, (String[]) output.get("endpoint") ,UUID.fromString((String) output.get("tag")), data);
 					}
 				}
 			}
@@ -117,10 +117,11 @@ public class MicroService {
 	 * @param ms   microservice
 	 * @param data data of sender
 	 */
-	private void receiveFromMicroService(MicroService ms, UUID tag, JSONObject data) {
+	private void receiveFromMicroService(MicroService ms, String[] endpoint, UUID tag, JSONObject data) {
 		Map<String, Object> jsonMap = new HashMap<String, Object>();
 
 		jsonMap.put("ms", ms.getName());
+		jsonMap.put("endpoint", endpoint);
 		jsonMap.put("tag", tag);
 		jsonMap.put("data", data);
 
