@@ -97,13 +97,16 @@ public class MicroService {
 						MicroService ms = MicroService.get((String) output.get("ms"));
 
 						if (ms != null) {
-							ms.receiveFromMicroService(this, (String[]) output.get("endpoint"), tag, data);
+							ms.receiveFromMicroService(this, (JSONArray) output.get("endpoint"), tag, data);
+							return true;
 						}
 					} else {
 						Client client = open.get(tag);
-						client.send(data);
+						if (client != null) {
+							client.send(data);
+							return true;
+						}
 					}
-					return true;
 				}
 			}
 		} catch (ClassCastException e) {
@@ -117,12 +120,12 @@ public class MicroService {
 	 * @param ms   microservice
 	 * @param data data of sender
 	 */
-	private void receiveFromMicroService(MicroService ms, String[] endpoint, UUID tag, JSONObject data) {
+	private void receiveFromMicroService(MicroService ms, JSONArray endpoint, UUID tag, JSONObject data) {
 		Map<String, Object> jsonMap = new HashMap<String, Object>();
 
 		jsonMap.put("ms", ms.getName());
 		jsonMap.put("endpoint", endpoint);
-		jsonMap.put("tag", tag);
+		jsonMap.put("tag", tag.toString());
 		jsonMap.put("data", data);
 
 		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));

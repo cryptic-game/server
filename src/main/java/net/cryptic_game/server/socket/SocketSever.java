@@ -36,7 +36,7 @@ public class SocketSever {
 		try {
 			f = new ServerBootstrap().group(group)
 					.channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-					.childHandler(initializer).localAddress(new InetSocketAddress(host, port)).bind().sync();
+					.childHandler(initializer).localAddress(new InetSocketAddress(host, port)).bind();
 			
 			logger.log(Priority.INFO, this.getName() + " bootet on port " + port);
 			
