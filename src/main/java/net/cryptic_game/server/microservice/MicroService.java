@@ -92,18 +92,18 @@ public class MicroService {
 				if (output.containsKey("tag") && output.get("tag") instanceof String) {
 					UUID tag = UUID.fromString((String) output.get("tag"));
 
-					Client client = open.get(tag);
-					client.send(data);
-					return true;
-				}
+					if (output.containsKey("ms") && output.get("ms") instanceof String && output.containsKey("endpoint")
+							&& output.get("endpoint") instanceof JSONArray) {
+						MicroService ms = MicroService.get((String) output.get("ms"));
 
-				if (output.containsKey("ms") && output.get("ms") instanceof String && output.containsKey("tag")
-						&& output.get("tag") instanceof String && output.containsKey("endpoint") && output.get("endpoint") instanceof JSONArray) {
-					MicroService ms = MicroService.get((String) output.get("ms"));
-
-					if (ms != null) {
-						ms.receiveFromMicroService(this, (String[]) output.get("endpoint") ,UUID.fromString((String) output.get("tag")), data);
+						if (ms != null) {
+							ms.receiveFromMicroService(this, (String[]) output.get("endpoint"), tag, data);
+						}
+					} else {
+						Client client = open.get(tag);
+						client.send(data);
 					}
+					return true;
 				}
 			}
 		} catch (ClassCastException e) {
@@ -182,7 +182,7 @@ public class MicroService {
 
 		if (userAccount != null) {
 			Client clientOfUser = Client.getClient(userAccount);
-			
+
 			if (clientOfUser != null) {
 				clientOfUser.send(data);
 			}
