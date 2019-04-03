@@ -6,7 +6,6 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -55,6 +54,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 					status.put("online", Client.getOnlineCount());
 
 					this.respond(channel, status);
+					return;
 				} else if (obj.containsKey("name") && obj.get("name") instanceof String && obj.containsKey("password")
 						&& obj.get("password") instanceof String) {
 					String name = (String) obj.get("name");
@@ -93,7 +93,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 				return;
 			}
 			this.error(channel, "permissions denied");
-		} catch (ParseException e) {
+		} catch (Exception e) {
 			this.error(ctx.channel(), "unsupported format");
 			ctx.channel().close();
 		}
