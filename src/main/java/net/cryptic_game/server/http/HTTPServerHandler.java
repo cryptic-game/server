@@ -52,7 +52,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
 			boolean authSuccess = false;
 
-			if (!Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+			if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
 				String auth = request.headers().get("Authorization");
 
 				if (auth == null) {

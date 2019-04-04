@@ -69,8 +69,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 							jsonMap.put("result", true);
 
 							respond(channel, new JSONObject(jsonMap));
-							return;
+						} else {
+							this.error(channel, "permissions denied");
 						}
+						return;
 					} else if (action.equals("register")) {
 						User user = User.create(name, password);
 

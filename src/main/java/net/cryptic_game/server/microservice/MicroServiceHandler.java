@@ -20,6 +20,10 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 		try {
 			JSONObject obj = (JSONObject) new JSONParser().parse(msg);
 
+			System.out.println(obj);
+			
+			this.error(ctx.channel(), "CHECK?!");
+			
 			MicroService ms = MicroService.get(ctx.channel());
 
 			if (ms == null || !ms.send(obj)) {

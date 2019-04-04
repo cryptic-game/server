@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -23,6 +25,8 @@ import net.cryptic_game.server.user.User;
  *
  */
 public class MicroService {
+
+	private static final Logger logger = Logger.getLogger(MicroService.class);
 
 	// open requests of client
 	private static Map<UUID, Client> open = new HashMap<UUID, Client>();
@@ -85,6 +89,7 @@ public class MicroService {
 	 * @return success
 	 */
 	public boolean send(JSONObject output) {
+		System.out.println(output);
 		try {
 			if (output.containsKey("data") && output.get("data") instanceof JSONObject) {
 				JSONObject data = (JSONObject) output.get("data");
@@ -137,8 +142,10 @@ public class MicroService {
 	 * @param name    name of ms
 	 * @param channel channel of ms
 	 */
+	@SuppressWarnings("deprecation")
 	public static void register(String name, Channel channel) {
 		services.add(new MicroService(name, channel));
+		logger.log(Priority.INFO, "microservice registered: " + name);
 	}
 
 	/**
@@ -146,12 +153,15 @@ public class MicroService {
 	 * 
 	 * @param channel channel of ms
 	 */
+	@SuppressWarnings("deprecation")
 	public static void unregister(Channel channel) {
 		MicroService ms = MicroService.get(channel);
 
 		if (ms != null) {
 			services.remove(ms);
 		}
+		
+		logger.log(Priority.INFO, "microservice unregistered: " + ms.getName());
 	}
 
 	/**

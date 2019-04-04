@@ -10,7 +10,7 @@ import net.cryptic_game.server.database.Database;
 
 public class User {
 
-	private static Database db = new Database("user");
+	private static Database db = new Database("user.db");
 
 	static {
 		db.update("CREATE TABLE IF NOT EXISTS `user` (uuid TEXT PRIMARY KEY, name TEXT, password TEXT);");
