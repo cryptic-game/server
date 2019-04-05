@@ -89,7 +89,6 @@ public class MicroService {
 	 * @return success
 	 */
 	public boolean send(JSONObject output) {
-		System.out.println(output);
 		try {
 			if (output.containsKey("data") && output.get("data") instanceof JSONObject) {
 				JSONObject data = (JSONObject) output.get("data");

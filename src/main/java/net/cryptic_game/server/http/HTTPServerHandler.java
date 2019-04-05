@@ -72,7 +72,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
 					User user = User.get(name);
 
-					if (user.checkPassword(password)) {
+					if (user != null && user.checkPassword(password)) {
 						authSuccess = true;
 						client.setUser(user);
 					}
