@@ -39,6 +39,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 					jsonMap.put("mail", client.getUser().getMail());
 					jsonMap.put("created", client.getUser().getCreated().getTime());
 					jsonMap.put("last", client.getUser().getLast().getTime());
+					jsonMap.put("online", Client.getOnlineCount());
 					
 					this.respond(channel, jsonMap);
 				} else if (obj.containsKey("ms") && obj.get("ms") instanceof String && obj.containsKey("data")
