@@ -18,7 +18,8 @@ public enum DefaultConfig {
 	MSSOCKET_PORT(1239),
 	HTTP_PORT(8080),
 	AUTH_ENABLED(true), 
-	STORAGE_LOCATION("data/");
+	STORAGE_LOCATION("data/"),
+	SESSION_EXPIRE(60*60*24*2); // 2 days
 	
 	
 	private Object value;
