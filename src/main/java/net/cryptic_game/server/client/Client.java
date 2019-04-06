@@ -38,6 +38,9 @@ public class Client {
 
 	public void setUser(User user) {
 		this.user = user;
+		if(this.user != null) {
+			this.user.updateLast();
+		}
 	}
 
 	public boolean isValid() {

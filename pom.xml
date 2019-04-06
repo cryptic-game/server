@@ -5,7 +5,7 @@
 
 	<groupId>net.cryptic-game</groupId>
 	<artifactId>server</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.5</version>
 	<packaging>jar</packaging>
 
 	<name>cryptic-game-server</name>
@@ -75,6 +75,11 @@
 			<groupId>at.favre.lib</groupId>
 			<artifactId>bcrypt</artifactId>
 			<version>0.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+			<version>1.4.1</version>
 		</dependency>
 	</dependencies>
 </project>

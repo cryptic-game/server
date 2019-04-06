@@ -11,7 +11,7 @@ Build the game-server by using `mvn clean install` .
 
 ### Execute
 
-Run it with `java -jar target/server-0.0.4-SNAPSHOT.jar` .
+Run it with `java -jar target/server-0.0.5.jar` .
 
 ### Environment variables
 
@@ -24,6 +24,7 @@ Run it with `java -jar target/server-0.0.4-SNAPSHOT.jar` .
 | HTTP_PORT        | 8080          |
 | AUTH_ENABLED     | true          |
 | STORAGE_LOCATION | data/         | 
+| SESSION_EXPIRE   | 172800        | 
 
 ## Docker
 
