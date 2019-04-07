@@ -19,6 +19,12 @@ public enum DefaultConfig {
 	HTTP_PORT(8080),
 	AUTH_ENABLED(true), 
 	STORAGE_LOCATION("data/"),
+	MYSQL_HOSTNAME("localhost"),
+	MYSQL_USERNAME("cryptic"),
+	MYSQL_PASSWORD("cryptic"),
+	MYSQL_DATABASE("cryptic"),
+	MYSQL_PORT(3306),
+	PRODUCTIVE(false),
 	SESSION_EXPIRE(60*60*24*2); // 2 days
 	
 	

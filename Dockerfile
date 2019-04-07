@@ -12,4 +12,4 @@ ADD . /app/
 
 RUN mvn clean install
 
-CMD java -jar target/server-0.0.5-jar-with-dependencies.jar
+CMD java -jar target/server-0.0.6-jar-with-dependencies.jar

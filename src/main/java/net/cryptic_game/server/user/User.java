@@ -11,13 +11,27 @@ import org.apache.commons.validator.routines.EmailValidator;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import at.favre.lib.crypto.bcrypt.BCrypt.Result;
+import net.cryptic_game.server.config.Config;
+import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
+import net.cryptic_game.server.database.JDBCDatabase;
+import net.cryptic_game.server.database.MySQLDatabase;
 
 public class User {
 
-	protected static Database db = new Database("user.db");
+	protected static Database db = null;
 
 	static {
+
+		try {
+			if (Config.getBoolean(DefaultConfig.PRODUCTIVE)) {
+				db = new MySQLDatabase();
+			} else {
+				db = new JDBCDatabase("user.db");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		db.update(
 				"CREATE TABLE IF NOT EXISTS `user` (uuid TEXT PRIMARY KEY, name TEXT, mail TEXT, password TEXT, created DATETIME, last DATETIME);");
 		db.update(
@@ -86,7 +100,7 @@ public class User {
 	public String toString() {
 		return this.getName();
 	}
-	
+
 	public void updateLast() {
 		Date now = new Date(Calendar.getInstance().getTime().getTime());
 
