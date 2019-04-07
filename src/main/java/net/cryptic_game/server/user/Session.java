@@ -3,6 +3,7 @@ package net.cryptic_game.server.user;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.UUID;
 
@@ -63,10 +64,12 @@ public class Session {
 	public static Session create(User user) {
 		Session session = new Session(UUID.randomUUID(), UUID.randomUUID(), user,
 				new Date(Calendar.getInstance().getTime().getTime()), true);
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 		User.db.update("INSERT INTO `session` (`uuid`, `token`, `user`, `created`, `valid`) VALUES ('"
 				+ session.getUUID().toString() + "', " + "'" + session.getToken().toString() + "', '"
-				+ session.getUser().getUUID().toString() + "', " + session.getCreated().getTime() + ", " + session.isValid()
+				+ session.getUser().getUUID().toString() + "', '" + sdf.format(session.getCreated()) + "', " + session.isValid()
 				+ ")");
 
 		return session;

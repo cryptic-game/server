@@ -3,6 +3,7 @@ package net.cryptic_game.server.user;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -103,8 +104,10 @@ public class User {
 
 	public void updateLast() {
 		Date now = new Date(Calendar.getInstance().getTime().getTime());
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		db.update("UPDATE `user` SET `last`=" + now.getTime() + " WHERE `uuid`='" + this.getUUID() + "';");
+		db.update("UPDATE `user` SET `last`='" + sdf.format(now) + "' WHERE `uuid`='" + this.getUUID() + "';");
 	}
 
 	public static User get(UUID uuid) {
@@ -143,12 +146,14 @@ public class User {
 				UUID uuid = UUID.randomUUID();
 
 				Date now = new Date(Calendar.getInstance().getTime().getTime());
+				
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 				User user = new User(uuid, name, mail, password, now, now);
 
 				db.update("INSERT INTO `user` (`uuid`, `name`, `mail`, `password`, `created`, `last`) VALUES ('"
-						+ uuid.toString() + "', '" + name + "', '" + mail + "', '" + User.hashPassword(password) + "', "
-						+ now.getTime() + ", " + now.getTime() + ");");
+						+ uuid.toString() + "', '" + name + "', '" + mail + "', '" + User.hashPassword(password) + "', '"
+						+ sdf.format(now) + "', '" + sdf.format(now) + "');");
 
 				return user;
 			}
