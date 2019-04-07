@@ -11,7 +11,7 @@ Build the game-server by using `mvn clean install` .
 
 ### Execute
 
-Run it with `java -jar target/server-0.0.5.jar` .
+Run it with `java -jar target/server-0.0.6-jar-with-dependencies.jar` .
 
 ### Environment variables
 
@@ -25,6 +25,11 @@ Run it with `java -jar target/server-0.0.5.jar` .
 | AUTH_ENABLED     | true          |
 | STORAGE_LOCATION | data/         | 
 | SESSION_EXPIRE   | 172800        | 
+| MYSQL_HOSTNAME   | cryptic       |
+| MYSQL_PORT       | 3306          |
+| MYSQL_USERNAME   | cryptic       |
+| MYSQL_PASSWORD   | cryptic       |
+| MYSQL_DATABSE    | cryptic       |
 
 ## Docker
 
