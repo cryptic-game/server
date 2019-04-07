@@ -33,9 +33,9 @@ public class User {
 			e.printStackTrace();
 		}
 		db.update(
-				"CREATE TABLE IF NOT EXISTS `user` (uuid TEXT PRIMARY KEY, name TEXT, mail TEXT, password TEXT, created DATETIME, last DATETIME);");
+				"CREATE TABLE IF NOT EXISTS `user` (uuid VARCHAR(36) PRIMARY KEY, name TEXT, mail TEXT, password TEXT, created DATETIME, last DATETIME);");
 		db.update(
-				"CREATE TABLE IF NOT EXISTS `session` (uuid TEXT, token TEXT, user TEXT, valid BOOLEAN, created DATETIME, PRIMARY KEY(uuid, token, user),  FOREIGN KEY (user) REFERENCES user(uuid));");
+				"CREATE TABLE IF NOT EXISTS `session` (uuid VARCHAR(36), token VARCHAR(36), user VARCHAR(36), valid BOOLEAN, created DATETIME, PRIMARY KEY(uuid, token, user),  FOREIGN KEY (user) REFERENCES user(uuid));");
 	}
 
 	private UUID uuid;
