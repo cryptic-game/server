@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 
-public class JDBCDatabase extends Database {
+public class SQLiteDatabase extends Database {
 
 	static {
 		try {
@@ -16,7 +16,7 @@ public class JDBCDatabase extends Database {
 		}
 	}
 	
-	public JDBCDatabase(String name) throws SQLException {
+	public SQLiteDatabase(String name) throws SQLException {
 		super(DriverManager.getConnection("jdbc:sqlite:" + Config.get(DefaultConfig.STORAGE_LOCATION) + name));
 	}
 
