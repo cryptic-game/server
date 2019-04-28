@@ -25,7 +25,8 @@ public enum DefaultConfig {
 	MYSQL_DATABASE("cryptic"),
 	MYSQL_PORT(3306),
 	PRODUCTIVE(true),
-	SESSION_EXPIRE(60*60*24*2); // 2 days
+	SESSION_EXPIRE(60*60*24*2), // 2 days
+	RESPONSE_TIMEOUT(20); // 20 seconds
 	
 	
 	private Object value;
