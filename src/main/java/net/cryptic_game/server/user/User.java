@@ -81,7 +81,7 @@ public class User {
     }
 
     public boolean changePassword(String oldPassword, String newPassword) {
-        if (this.checkPassword(newPassword) && isValidPassword(newPassword)) {
+        if (this.checkPassword(oldPassword) && isValidPassword(newPassword)) {
             String hash = hashPassword(newPassword);
 
             db.update("UPDATE `user` SET `password`='" + hash + "' WHERE `uuid`='" + this.getUUID().toString() + "'");
