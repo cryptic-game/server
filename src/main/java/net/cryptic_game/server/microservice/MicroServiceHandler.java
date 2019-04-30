@@ -57,7 +57,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
      * @param error
      */
     private void error(Channel channel, String error) {
-        Map<String, String> jsonMap = new HashMap<String, String>();
+        Map<String, String> jsonMap = new HashMap<>();
 
         jsonMap.put("error", error);
 

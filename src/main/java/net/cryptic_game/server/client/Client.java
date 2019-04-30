@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Client {
 
-    private static List<Client> clients = new ArrayList<Client>();
+    private static List<Client> clients = new ArrayList<>();
 
     private User user;
     private Channel channel;

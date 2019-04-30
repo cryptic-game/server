@@ -23,10 +23,10 @@ public class MicroService {
     private static final Logger logger = Logger.getLogger(MicroService.class);
 
     // open requests of client
-    private static Map<UUID, Client> open = new HashMap<UUID, Client>();
+    private static Map<UUID, Client> open = new HashMap<>();
 
     // online microservices
-    private static List<MicroService> services = new ArrayList<MicroService>();
+    private static List<MicroService> services = new ArrayList<>();
 
     private String name; // name of ms
     private Channel channel; // socket-channel of ms
@@ -54,7 +54,7 @@ public class MicroService {
     public void receive(Client client, JSONArray endpoint, JSONObject input) {
         UUID tag = UUID.randomUUID();
 
-        Map<String, Object> jsonMap = new HashMap<String, Object>();
+        Map<String, Object> jsonMap = new HashMap<>();
 
         jsonMap.put("tag", tag.toString());
         jsonMap.put("data", input);
@@ -119,7 +119,7 @@ public class MicroService {
      * @param data data of sender
      */
     private void receiveFromMicroService(MicroService ms, JSONArray endpoint, UUID tag, JSONObject data) {
-        Map<String, Object> jsonMap = new HashMap<String, Object>();
+        Map<String, Object> jsonMap = new HashMap<>();
 
         jsonMap.put("ms", ms.getName());
         jsonMap.put("endpoint", endpoint);

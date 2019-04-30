@@ -36,7 +36,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
             FullHttpRequest request = (FullHttpRequest) msg;
 
             if (request.getMethod().equals(HttpMethod.GET)) {
-                Map<String, Integer> jsonMap = new HashMap<String, Integer>();
+                Map<String, Integer> jsonMap = new HashMap<>();
 
                 jsonMap.put("online", Client.getOnlineCount());
 
@@ -112,7 +112,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void error(Channel channel, String error) {
-        Map<String, String> jsonMap = new HashMap<String, String>();
+        Map<String, String> jsonMap = new HashMap<>();
 
         jsonMap.put("error", error);
 

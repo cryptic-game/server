@@ -41,7 +41,7 @@ public enum DefaultConfig {
      * @return map with all key-value-pairs
      */
     public static Map<String, String> defaults() {
-        Map<String, String> defaults = new HashMap<String, String>();
+        Map<String, String> defaults = new HashMap<>();
 
         for (DefaultConfig e : DefaultConfig.values()) {
             defaults.put(e.toString(), e.getValue().toString());
