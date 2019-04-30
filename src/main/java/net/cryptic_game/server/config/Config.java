@@ -4,7 +4,7 @@ import java.util.Map;
 
 /**
  *
- * handles the environment variables
+ * Handles the environment variables
  *
  * @author use-to
  *

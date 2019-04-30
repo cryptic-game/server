@@ -51,10 +51,10 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
     }
 
     /**
-     * send error to microservice
+     * Sends an error to a microservice
      *
      * @param channel channel of receiver
-     * @param error
+     * @param error the error message
      */
     private void error(Channel channel, String error) {
         Map<String, String> jsonMap = new HashMap<>();

@@ -7,7 +7,6 @@ import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.User;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -45,9 +44,9 @@ public class MicroService {
     }
 
     /**
-     * send data to ms
+     * Sends data to microservice
      *
-     * @param sender   channel of client (for response)
+     * @param client   channel of client (for response)
      * @param endpoint endpoint on ms (string-array)
      * @param input    data sending to ms
      */
@@ -76,10 +75,9 @@ public class MicroService {
     }
 
     /**
-     * send data back to client
-     * <p>
-     * param output data from ms
+     * Sends data back to client
      *
+     * @param output data from microservice
      * @return success
      */
     public boolean send(JSONObject output) {
@@ -113,10 +111,10 @@ public class MicroService {
     }
 
     /**
-     * receives data from another microservice no requests
+     * Receives data from another microservice no requests
      *
      * @param ms   microservice
-     * @param data data of sender
+     * @param data data of the sender
      */
     private void receiveFromMicroService(MicroService ms, JSONArray endpoint, UUID tag, JSONObject data) {
         Map<String, Object> jsonMap = new HashMap<>();
@@ -130,36 +128,33 @@ public class MicroService {
     }
 
     /**
-     * register microservice
+     * Registers a microservice
      *
-     * @param name    name of ms
-     * @param channel channel of ms
+     * @param name    name of the microservice
+     * @param channel channel of the microservice
      */
-    @SuppressWarnings("deprecation")
     public static void register(String name, Channel channel) {
         services.add(new MicroService(name, channel));
-        logger.log(Priority.INFO, "microservice registered: " + name);
+        logger.info("microservice registered: " + name);
     }
 
     /**
-     * unregister microservice
+     * Unregisters a microservice
      *
-     * @param channel channel of ms
+     * @param channel channel of the microservice
      */
-    @SuppressWarnings("deprecation")
     public static void unregister(Channel channel) {
         MicroService ms = MicroService.get(channel);
 
         if (ms != null) {
             services.remove(ms);
+            logger.info("microservice unregistered: " + ms.getName());
         }
-
-        logger.log(Priority.INFO, "microservice unregistered: " + ms.getName());
     }
 
     /**
-     * @param name name of ms
-     * @return ms by name
+     * @param name name of the microservice
+     * @return the microservice by name or null
      */
     public static MicroService get(String name) {
         for (MicroService ms : services) {
@@ -171,8 +166,8 @@ public class MicroService {
     }
 
     /**
-     * @param channel channel of ms
-     * @return ms by channel
+     * @param channel channel of the microservice
+     * @return the microservice by channel or null
      */
     public static MicroService get(Channel channel) {
         for (MicroService ms : services) {

@@ -14,7 +14,7 @@ public class SocketServerUtils {
     }
 
     /**
-     * send string via websocket
+     * Sends string via websocket
      *
      * @param channel channel of receiver
      * @param data    data to send

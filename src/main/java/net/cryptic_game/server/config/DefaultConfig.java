@@ -38,7 +38,7 @@ public enum DefaultConfig {
     }
 
     /**
-     * @return map with all key-value-pairs
+     * @return map with all key-value pairs
      */
     public static Map<String, String> defaults() {
         Map<String, String> defaults = new HashMap<>();
