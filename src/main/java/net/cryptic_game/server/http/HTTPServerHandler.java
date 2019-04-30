@@ -27,7 +27,7 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
 
 public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
-    @SuppressWarnings({"unchecked", "deprecation"})
+    @SuppressWarnings("unchecked")
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Channel channel = ctx.channel();
@@ -36,7 +36,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
         if (client != null && msg instanceof FullHttpRequest) {
             FullHttpRequest request = (FullHttpRequest) msg;
 
-            if (request.getMethod().equals(HttpMethod.GET)) {
+            if (request.method().equals(HttpMethod.GET)) {
                 Map<String, Integer> jsonMap = new HashMap<>();
 
                 jsonMap.put("online", Client.getOnlineCount());
@@ -52,10 +52,10 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
                 String auth = request.headers().get("Authorization");
 
                 if (auth == null) {
-                    error(channel, "permissions denied");
+                    this.error(channel, "permissions denied");
                     return;
                 } else if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
-                    error(channel, "invalid authorization");
+                    this.error(channel, "invalid authorization");
                 }
 
                 String tuple = Base64
@@ -97,14 +97,15 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
                             }
                         }
                     }
-                } catch (ParseException e) {
+                } catch (ParseException | ClassCastException e) {
+                    this.error(channel, "unsupported format");
                 }
             } else {
-                error(channel, "permissions denied");
+                this.error(channel, "permissions denied");
                 return;
             }
 
-            error(channel, "unsupported format");
+            this.error(channel, "unsupported format");
         } else {
             super.channelRead(ctx, msg);
         }

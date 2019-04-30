@@ -23,16 +23,15 @@ public class SocketServerUtils {
         channel.writeAndFlush(new TextWebSocketFrame(data.toString()));
     }
 
-    @SuppressWarnings("deprecation")
     public static void sendJsonToHTTPClient(Channel channel, JSONObject obj) {
         final String responseMessage = obj.toString();
 
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
                 copiedBuffer(responseMessage.getBytes()));
 
-        response.headers().set(HttpHeaders.Names.SERVER, "cryptic-game-server");
-        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
-        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, responseMessage.length());
+        response.headers().set(HttpHeaderNames.SERVER, "cryptic-game-server");
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, responseMessage.length());
 
         channel.writeAndFlush(response);
     }

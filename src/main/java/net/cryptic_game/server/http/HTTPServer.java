@@ -25,7 +25,7 @@ public class HTTPServer {
                     .channel(NioServerSocketChannel.class).childHandler(new HTTPServerInitializer())
                     .option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
             bootstrap.bind(this.port).sync();
-        } catch (final InterruptedException e) {
+        } catch (final InterruptedException ignored) {
         }
     }
 
