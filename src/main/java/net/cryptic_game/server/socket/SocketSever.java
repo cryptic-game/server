@@ -11,7 +11,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 
 import java.net.InetSocketAddress;
 
@@ -23,27 +22,24 @@ public class SocketSever {
     private int port;
     private String name;
 
-    @SuppressWarnings("deprecation")
     public SocketSever(String name, String host, int port, ChannelInitializer<SocketChannel> initializer, boolean mainThread) {
         this.name = name;
         this.port = port;
 
         EventLoopGroup group = EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 
-        ChannelFuture f = null;
-
         try {
-            f = new ServerBootstrap().group(group)
+            ChannelFuture f = new ServerBootstrap().group(group)
                     .channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                     .childHandler(initializer).localAddress(new InetSocketAddress(host, port)).bind();
 
-            logger.log(Priority.INFO, this.getName() + " booted on port " + port);
+            logger.info(this.getName() + " booted on port " + port);
 
             if (mainThread) {
                 f.channel().closeFuture().sync();
             }
         } catch (Exception e) {
-            logger.error("cannot bind port to" + port);
+            logger.error("Cannot bind port to" + port);
         }
     }
 
