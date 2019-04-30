@@ -19,6 +19,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,9 +90,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
                             if (ms != null) {
                                 JSONArray endpoint = new JSONArray();
 
-                                for (int i = 1; i < args.length; i++) {
-                                    endpoint.add(args[i]);
-                                }
+                                endpoint.addAll(Arrays.asList(args).subList(1, args.length));
 
                                 ms.receive(client, endpoint, input);
                                 return;
