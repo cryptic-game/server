@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 public class MicroServiceServerInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
-    protected void initChannel(SocketChannel channel) throws Exception {
+    protected void initChannel(SocketChannel channel) {
         ChannelPipeline pipeline = channel.pipeline();
 
         pipeline.addLast(new StringDecoder(StandardCharsets.UTF_8));

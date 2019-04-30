@@ -15,7 +15,7 @@ import java.util.UUID;
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, String msg) {
         try {
             JSONObject obj = (JSONObject) new JSONParser().parse(msg);
 
@@ -65,7 +65,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    public void handlerRemoved(ChannelHandlerContext ctx) {
         MicroService.unregister(ctx.channel());
     }
 
