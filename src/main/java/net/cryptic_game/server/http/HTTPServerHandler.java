@@ -105,7 +105,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            error(channel, "unsupportet format");
+            error(channel, "unsupported format");
         } else {
             super.channelRead(ctx, msg);
         }

@@ -3,9 +3,11 @@ package net.cryptic_game.server.config;
 import java.util.Map;
 
 /**
+ *
  * handles the environment variables
  *
  * @author use-to
+ *
  */
 
 public class Config {
@@ -23,6 +25,7 @@ public class Config {
     }
 
     public static int getInteger(String key) {
+        //noinspection ConstantConditions
         return Integer.parseInt(get(key));
     }
 

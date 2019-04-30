@@ -17,14 +17,14 @@ public class Session {
     private UUID uuid;
     private UUID token;
     private User user;
-    private boolean vaild;
+    private boolean valid;
     private Date created;
 
     private Session(UUID uuid, UUID token, User user, Date created, boolean valid) {
         this.uuid = uuid;
         this.token = token;
         this.user = user;
-        this.vaild = valid;
+        this.valid = valid;
         this.created = created;
     }
 
@@ -45,11 +45,11 @@ public class Session {
     }
 
     public boolean isValid() {
-        return this.vaild && this.created.before(new Date(Calendar.getInstance().getTime().getTime() + EXPIRE));
+        return this.valid && this.created.before(new Date(Calendar.getInstance().getTime().getTime() + EXPIRE));
     }
 
     public void breakSession() {
-        this.vaild = false;
+        this.valid = false;
         User.db.update("UPDATE `session` SET `valid`=" + this.isValid() + " WHERE `uuid`='" + this.getUUID() + "'");
     }
 

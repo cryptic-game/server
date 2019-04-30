@@ -37,13 +37,13 @@ public class SocketSever {
                     .channel(EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                     .childHandler(initializer).localAddress(new InetSocketAddress(host, port)).bind();
 
-            logger.log(Priority.INFO, this.getName() + " bootet on port " + port);
+            logger.log(Priority.INFO, this.getName() + " booted on port " + port);
 
             if (mainThread) {
                 f.channel().closeFuture().sync();
             }
         } catch (Exception e) {
-            logger.error("cannot bind port " + port);
+            logger.error("cannot bind port to" + port);
         }
     }
 
