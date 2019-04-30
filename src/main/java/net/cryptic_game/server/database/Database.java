@@ -7,33 +7,33 @@ import java.sql.SQLException;
 
 public class Database {
 
-	private Connection connection;
+    private Connection connection;
 
-	public Database(Connection connection) {
-		this.connection = connection;
-	}
-	
-	public ResultSet getResult(String query) {
-		PreparedStatement statement;
-		try {
-			statement = this.connection.prepareStatement(query);
+    public Database(Connection connection) {
+        this.connection = connection;
+    }
 
-			return statement.executeQuery();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public ResultSet getResult(String query) {
+        PreparedStatement statement;
+        try {
+            statement = this.connection.prepareStatement(query);
 
-	public void update(String query) {
-		PreparedStatement statement;
-		try {
-			statement = this.connection.prepareStatement(query);
+            return statement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+    public void update(String query) {
+        PreparedStatement statement;
+        try {
+            statement = this.connection.prepareStatement(query);
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

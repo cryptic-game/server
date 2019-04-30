@@ -1,13 +1,5 @@
 package net.cryptic_game.server.websocket;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -20,171 +12,178 @@ import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.Session;
 import net.cryptic_game.server.user.User;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
-	@SuppressWarnings({ "unchecked" })
-	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame frame) {
-		Channel channel = ctx.channel();
-		Client client = Client.getClient(channel);
-		try {
-			JSONObject obj = (JSONObject) new JSONParser().parse(frame.text());
-			if (!Config.getBoolean(DefaultConfig.AUTH_ENABLED) || client.isValid()) {
-				if (obj.containsKey("action") && obj.get("action") instanceof String
-						&& obj.get("action").equals("info")) {
-					Map<String, Object> jsonMap = new HashMap<String, Object>();
-					
-					jsonMap.put("name", client.getUser().getName());
-					jsonMap.put("mail", client.getUser().getMail());
-					jsonMap.put("created", client.getUser().getCreated().getTime());
-					jsonMap.put("last", client.getUser().getLast().getTime());
-					jsonMap.put("online", Client.getOnlineCount());
-					
-					this.respond(channel, jsonMap);
-				} else if (obj.containsKey("ms") && obj.get("ms") instanceof String && obj.containsKey("data")
-						&& obj.get("data") instanceof JSONObject && obj.containsKey("endpoint")
-						&& obj.get("endpoint") instanceof JSONArray) {
-					try {
-						MicroService ms = MicroService.get((String) obj.get("ms"));
+    @SuppressWarnings({"unchecked"})
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame frame) {
+        Channel channel = ctx.channel();
+        Client client = Client.getClient(channel);
+        try {
+            JSONObject obj = (JSONObject) new JSONParser().parse(frame.text());
+            if (!Config.getBoolean(DefaultConfig.AUTH_ENABLED) || client.isValid()) {
+                if (obj.containsKey("action") && obj.get("action") instanceof String
+                        && obj.get("action").equals("info")) {
+                    Map<String, Object> jsonMap = new HashMap<String, Object>();
 
-						if (ms != null) {
-							ms.receive(client, (JSONArray) obj.get("endpoint"), (JSONObject) obj.get("data"));
-						}
-					} catch (ClassCastException e) {
-						e.printStackTrace();
-					}
-				} else {
-					this.error(channel, "invalid data");
-				}
-				return;
-			} else if (obj.containsKey("action") && obj.get("action") instanceof String) {
-				String action = (String) obj.get("action");
+                    jsonMap.put("name", client.getUser().getName());
+                    jsonMap.put("mail", client.getUser().getMail());
+                    jsonMap.put("created", client.getUser().getCreated().getTime());
+                    jsonMap.put("last", client.getUser().getLast().getTime());
+                    jsonMap.put("online", Client.getOnlineCount());
 
-				if (action.equals("status")) {
-					Map<String, Object> status = new HashMap<String, Object>();
+                    this.respond(channel, jsonMap);
+                } else if (obj.containsKey("ms") && obj.get("ms") instanceof String && obj.containsKey("data")
+                        && obj.get("data") instanceof JSONObject && obj.containsKey("endpoint")
+                        && obj.get("endpoint") instanceof JSONArray) {
+                    try {
+                        MicroService ms = MicroService.get((String) obj.get("ms"));
 
-					status.put("online", Client.getOnlineCount());
+                        if (ms != null) {
+                            ms.receive(client, (JSONArray) obj.get("endpoint"), (JSONObject) obj.get("data"));
+                        }
+                    } catch (ClassCastException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    this.error(channel, "invalid data");
+                }
+                return;
+            } else if (obj.containsKey("action") && obj.get("action") instanceof String) {
+                String action = (String) obj.get("action");
 
-					this.respond(channel, status);
-					return;
-				} else if (action.equals("session") && obj.containsKey("token") && obj.get("token") instanceof String) {
-					Session session = Session.get(UUID.fromString((String) obj.get("token")));
+                if (action.equals("status")) {
+                    Map<String, Object> status = new HashMap<String, Object>();
 
-					if (session != null && session.isValid()) {
-						client.setUser(session.getUser());
+                    status.put("online", Client.getOnlineCount());
 
-						Map<String, String> jsonMap = new HashMap<String, String>();
+                    this.respond(channel, status);
+                    return;
+                } else if (action.equals("session") && obj.containsKey("token") && obj.get("token") instanceof String) {
+                    Session session = Session.get(UUID.fromString((String) obj.get("token")));
 
-						jsonMap.put("token", session.getToken().toString());
+                    if (session != null && session.isValid()) {
+                        client.setUser(session.getUser());
 
-						respond(channel, new JSONObject(jsonMap));
-					} else {
-						error(channel, "permissions denied");
-					}
-					return;
-				} else if (obj.containsKey("name") && obj.get("name") instanceof String && obj.containsKey("password")
-						&& obj.get("password") instanceof String) {
-					String name = (String) obj.get("name");
-					String password = (String) obj.get("password");
-					if (action.equals("login")) {
-						User user = User.get(name);
+                        Map<String, String> jsonMap = new HashMap<String, String>();
 
-						if (user != null && user.checkPassword(password)) {
-							Session session = Session.create(user);
+                        jsonMap.put("token", session.getToken().toString());
 
-							if (session != null) {
-								client.setUser(user);
+                        respond(channel, new JSONObject(jsonMap));
+                    } else {
+                        error(channel, "permissions denied");
+                    }
+                    return;
+                } else if (obj.containsKey("name") && obj.get("name") instanceof String && obj.containsKey("password")
+                        && obj.get("password") instanceof String) {
+                    String name = (String) obj.get("name");
+                    String password = (String) obj.get("password");
+                    if (action.equals("login")) {
+                        User user = User.get(name);
 
-								Map<String, String> jsonMap = new HashMap<String, String>();
+                        if (user != null && user.checkPassword(password)) {
+                            Session session = Session.create(user);
 
-								jsonMap.put("token", session.getToken().toString());
+                            if (session != null) {
+                                client.setUser(user);
 
-								respond(channel, new JSONObject(jsonMap));
-								return;
-							}
-						} else {
-							this.error(channel, "permissions denied");
-						}
-						return;
-					} else if (action.equals("register") && obj.containsKey("mail")
-							&& obj.get("mail") instanceof String) {
-						String mail = (String) obj.get("mail");
+                                Map<String, String> jsonMap = new HashMap<String, String>();
 
-						if (User.isValidPassword(password)) {
-							if (User.isValidMailAddress(mail)) {
-								User user = User.create(name, mail, password);
+                                jsonMap.put("token", session.getToken().toString());
 
-								if (user != null) {
-									Session session = Session.create(user);
+                                respond(channel, new JSONObject(jsonMap));
+                                return;
+                            }
+                        } else {
+                            this.error(channel, "permissions denied");
+                        }
+                        return;
+                    } else if (action.equals("register") && obj.containsKey("mail")
+                            && obj.get("mail") instanceof String) {
+                        String mail = (String) obj.get("mail");
 
-									if (session != null) {
-										client.setUser(user);
+                        if (User.isValidPassword(password)) {
+                            if (User.isValidMailAddress(mail)) {
+                                User user = User.create(name, mail, password);
 
-										Map<String, String> jsonMap = new HashMap<String, String>();
+                                if (user != null) {
+                                    Session session = Session.create(user);
 
-										jsonMap.put("token", session.getToken().toString());
+                                    if (session != null) {
+                                        client.setUser(user);
 
-										respond(channel, new JSONObject(jsonMap));
-										return;
-									}
-								} else {
-									error(channel, "username already exists");
-									return;
-								}
-							} else {
-								error(channel, "no valid mail");
-								return;
-							}
-						} else {
-							error(channel, "no valid password (condition: minimum 8 chars, one digit, one digit)");
-							return;
-						}
-					} else if (action.equals("password") && obj.containsKey("new")
-							&& obj.get("new") instanceof String) {
-						User user = User.get(name);
+                                        Map<String, String> jsonMap = new HashMap<String, String>();
 
-						if (user.changePassword(password, (String) obj.get("new"))) {
-							Map<String, Boolean> jsonMap = new HashMap<String, Boolean>();
+                                        jsonMap.put("token", session.getToken().toString());
 
-							jsonMap.put("result", true);
+                                        respond(channel, new JSONObject(jsonMap));
+                                        return;
+                                    }
+                                } else {
+                                    error(channel, "username already exists");
+                                    return;
+                                }
+                            } else {
+                                error(channel, "no valid mail");
+                                return;
+                            }
+                        } else {
+                            error(channel, "no valid password (condition: minimum 8 chars, one digit, one digit)");
+                            return;
+                        }
+                    } else if (action.equals("password") && obj.containsKey("new")
+                            && obj.get("new") instanceof String) {
+                        User user = User.get(name);
 
-							this.respond(channel, new JSONObject(jsonMap));
-						} else {
-							this.error(channel, "permissions denied");
-						}
-					}
-				}
-				this.error(channel, "unknown action");
-				return;
-			}
-			this.error(channel, "permissions denied");
-		} catch (Exception e) {
-			this.error(ctx.channel(), "unsupported format");
-			ctx.channel().close();
-		}
-	}
+                        if (user.changePassword(password, (String) obj.get("new"))) {
+                            Map<String, Boolean> jsonMap = new HashMap<String, Boolean>();
 
-	private void error(Channel channel, String error) {
-		Map<String, Object> jsonMap = new HashMap<String, Object>();
+                            jsonMap.put("result", true);
 
-		jsonMap.put("error", error);
+                            this.respond(channel, new JSONObject(jsonMap));
+                        } else {
+                            this.error(channel, "permissions denied");
+                        }
+                    }
+                }
+                this.error(channel, "unknown action");
+                return;
+            }
+            this.error(channel, "permissions denied");
+        } catch (Exception e) {
+            this.error(ctx.channel(), "unsupported format");
+            ctx.channel().close();
+        }
+    }
 
-		this.respond(channel, jsonMap);
-	}
+    private void error(Channel channel, String error) {
+        Map<String, Object> jsonMap = new HashMap<String, Object>();
 
-	private void respond(Channel channel, Map<String, Object> data) {
-		SocketServerUtils.sendJsonToClient(channel, new JSONObject(data));
-	}
+        jsonMap.put("error", error);
 
-	@Override
-	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-		Client.addClient(ctx.channel(), ClientType.WEBSOCKET);
-	}
+        this.respond(channel, jsonMap);
+    }
 
-	@Override
-	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-		Client.removeClient(ctx.channel());
-	}
+    private void respond(Channel channel, Map<String, Object> data) {
+        SocketServerUtils.sendJsonToClient(channel, new JSONObject(data));
+    }
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        Client.addClient(ctx.channel(), ClientType.WEBSOCKET);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        Client.removeClient(ctx.channel());
+    }
 
 }
