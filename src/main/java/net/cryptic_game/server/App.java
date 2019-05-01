@@ -13,7 +13,7 @@ import org.apache.log4j.BasicConfigurator;
  *
  * @author use-to
  * @author cryptic-game.net
- * @version 0.0.2-SNAPSHOT
+ * @version 0.0.8-SNAPSHOT
  */
 
 public class App {
