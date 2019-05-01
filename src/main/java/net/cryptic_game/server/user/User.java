@@ -5,7 +5,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt.Result;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
-import net.cryptic_game.server.database.JDBCDatabase;
+import net.cryptic_game.server.database.SQLiteDatabase;
 import net.cryptic_game.server.database.MySQLDatabase;
 import org.apache.commons.validator.routines.EmailValidator;
 
@@ -27,7 +27,7 @@ public class User {
             if (Config.getBoolean(DefaultConfig.PRODUCTIVE)) {
                 db = new MySQLDatabase();
             } else {
-                db = new JDBCDatabase("user.db");
+                db = new SQLiteDatabase("user.db");
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -72,7 +72,22 @@ public class MicroService {
         SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
 
         open.put(tag, client);
-    }
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000 * Config.getInteger(DefaultConfig.RESPONSE_TIMEOUT));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if(open.containsKey(tag)) {
+                Map<String, String> map = new HashMap<>();
+
+                map.put("error", "no response - timeout");
+
+                open.remove(tag).send(new JSONObject(map));
+            }
+        }).start();
+	}
 
     /**
      * Sends data back to client
