@@ -9,26 +9,29 @@ public class Database {
 
     private Connection connection;
 
-    public Database(Connection connection) {
+    Database(Connection connection) {
         this.connection = connection;
     }
 
-    public ResultSet getResult(String query) {
-        PreparedStatement statement;
+    public ResultSet getResult(String query, Object... args) {
         try {
+            PreparedStatement statement;
             statement = this.connection.prepareStatement(query);
+            for (int i = 0; i < args.length; i++) statement.setObject(i, args[i]);
 
             return statement.executeQuery();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
-    public void update(String query) {
-        PreparedStatement statement;
+    public void update(String query, Object... args) {
         try {
+            PreparedStatement statement;
             statement = this.connection.prepareStatement(query);
+            for (int i = 0; i < args.length; i++) statement.setObject(i, args[i]);
 
             statement.executeUpdate();
         } catch (SQLException e) {

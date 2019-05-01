@@ -5,8 +5,8 @@ import at.favre.lib.crypto.bcrypt.BCrypt.Result;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
-import net.cryptic_game.server.database.SQLiteDatabase;
 import net.cryptic_game.server.database.MySQLDatabase;
+import net.cryptic_game.server.database.SQLiteDatabase;
 import org.apache.commons.validator.routines.EmailValidator;
 
 import java.sql.Date;
@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 public class User {
 
-    protected static Database db = null;
+    static Database db = null;
 
     static {
 
@@ -32,10 +32,22 @@ public class User {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        db.update(
-                "CREATE TABLE IF NOT EXISTS `user` (uuid VARCHAR(36) PRIMARY KEY, name TEXT, mail TEXT, password TEXT, created DATETIME, last DATETIME);");
-        db.update(
-                "CREATE TABLE IF NOT EXISTS `session` (uuid VARCHAR(36), token VARCHAR(36), user VARCHAR(36), valid BOOLEAN, created DATETIME, PRIMARY KEY(uuid, token, user),  FOREIGN KEY (user) REFERENCES user(uuid));");
+        db.update("CREATE TABLE IF NOT EXISTS `user` (" +
+                "uuid VARCHAR(36) PRIMARY KEY, " +
+                "name TEXT, mail TEXT, " +
+                "password TEXT, " +
+                "created DATETIME, " +
+                "last DATETIME" +
+                ");");
+        db.update("CREATE TABLE IF NOT EXISTS `session` (" +
+                "uuid VARCHAR(36), " +
+                "token VARCHAR(36), " +
+                "user VARCHAR(36), " +
+                "valid BOOLEAN, " +
+                "created DATETIME, " +
+                "PRIMARY KEY(uuid, token, user), " +
+                "FOREIGN KEY (user) REFERENCES user(uuid)" +
+                ");");
     }
 
     private UUID uuid;
@@ -84,7 +96,7 @@ public class User {
         if (this.checkPassword(oldPassword) && isValidPassword(newPassword)) {
             String hash = hashPassword(newPassword);
 
-            db.update("UPDATE `user` SET `password`='" + hash + "' WHERE `uuid`='" + this.getUUID().toString() + "'");
+            db.update("UPDATE `user` SET `password`=? WHERE `uuid`=?", hash, this.getUUID().toString());
 
             this.password = hash;
 
@@ -94,7 +106,7 @@ public class User {
     }
 
     public void delete() {
-        db.update("DELETE FROM `user` WHERE `uuid`='" + this.getUUID() + "';");
+        db.update("DELETE FROM `user` WHERE `uuid`=?", this.getUUID().toString());
     }
 
     public String toString() {
@@ -106,39 +118,34 @@ public class User {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        db.update("UPDATE `user` SET `last`='" + sdf.format(now) + "' WHERE `uuid`='" + this.getUUID() + "';");
+        db.update("UPDATE `user` SET `last`=? WHERE `uuid`=?", sdf.format(now), this.getUUID().toString());
     }
 
     public static User get(UUID uuid) {
-        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `uuid`='" + uuid.toString() + "';");
-
-        try {
-            if (rs.next()) {
-                return new User(UUID.fromString(rs.getString("uuid")), rs.getString("name"), rs.getString("mail"),
-                        rs.getString("password"), rs.getDate("created"), rs.getDate("last"));
-            }
-        } catch (SQLException e) {
-        }
-
-        return null;
+        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `uuid`=?", uuid.toString());
+        return getFromDBResult(rs);
     }
 
     public static User get(String name) {
-        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `name`='" + name + "';");
+        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `name`=?", name);
+        return getFromDBResult(rs);
+    }
 
+    private static User getFromDBResult(ResultSet rs) {
         try {
             if (rs.next()) {
                 return new User(UUID.fromString(rs.getString("uuid")), rs.getString("name"), rs.getString("mail"),
                         rs.getString("password"), rs.getDate("created"), rs.getDate("last"));
             }
         } catch (SQLException e) {
+            new RuntimeException("Unexpected error: missing column", e).printStackTrace();
         }
 
         return null;
     }
 
     public static User create(String name, String mail, String password) {
-        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `name`='" + name + "'");
+        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `name`=?", name);
 
         try {
             if (isValidPassword(password) && isValidMailAddress(mail) && !rs.next()) {
@@ -150,14 +157,15 @@ public class User {
 
                 User user = new User(uuid, name, mail, password, now, now);
 
-                db.update("INSERT INTO `user` (`uuid`, `name`, `mail`, `password`, `created`, `last`) VALUES ('"
-                        + uuid.toString() + "', '" + name + "', '" + mail + "', '" + User.hashPassword(password) + "', '"
-                        + sdf.format(now) + "', '" + sdf.format(now) + "');");
+                db.update("INSERT INTO `user` (`uuid`, `name`, `mail`, `password`, `created`, `last`) VALUES (?, ?, ?, ?, ?, ?)",
+                        uuid.toString(), name, mail, User.hashPassword(password), sdf.format(now), sdf.format(now));
 
                 return user;
             }
         } catch (SQLException e) {
+            e.printStackTrace();
         }
+
         return null;
     }
 

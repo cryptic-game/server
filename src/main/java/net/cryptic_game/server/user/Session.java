@@ -50,11 +50,11 @@ public class Session {
 
     public void breakSession() {
         this.valid = false;
-        User.db.update("UPDATE `session` SET `valid`=" + this.isValid() + " WHERE `uuid`='" + this.getUUID() + "'");
+        User.db.update("UPDATE `session` SET `valid`=? WHERE `uuid`=?", this.isValid(), this.getUUID().toString());
     }
 
     public void delete() {
-        User.db.update("DELETE FROM `session` WHERE `uuid`='" + this.getUUID() + "';");
+        User.db.update("DELETE FROM `session` WHERE `uuid`=?", this.getUUID().toString());
     }
 
     public String toString() {
@@ -67,16 +67,15 @@ public class Session {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        User.db.update("INSERT INTO `session` (`uuid`, `token`, `user`, `created`, `valid`) VALUES ('"
-                + session.getUUID().toString() + "', " + "'" + session.getToken().toString() + "', '"
-                + session.getUser().getUUID().toString() + "', '" + sdf.format(session.getCreated()) + "', " + session.isValid()
-                + ")");
+        User.db.update("INSERT INTO `session` (`uuid`, `token`, `user`, `created`, `valid`) VALUES (?, ?, ?, ?, ?)",
+                session.getUUID().toString(), session.getToken().toString(), session.getUser().getUUID().toString(),
+                sdf.format(session.getCreated()), session.isValid());
 
         return session;
     }
 
     public static Session get(UUID token) {
-        ResultSet rs = User.db.getResult("SELECT * FROM `session` WHERE `token`='" + token.toString() + "';");
+        ResultSet rs = User.db.getResult("SELECT * FROM `session` WHERE `token`=?", token.toString());
 
         try {
             if (rs.next()) {
@@ -84,6 +83,7 @@ public class Session {
                         User.get(UUID.fromString(rs.getString("user"))), rs.getDate("created"), rs.getBoolean("valid"));
             }
         } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return null;
