@@ -7,33 +7,36 @@ import java.sql.SQLException;
 
 public class Database {
 
-	private Connection connection;
+    private Connection connection;
 
-	public Database(Connection connection) {
-		this.connection = connection;
-	}
-	
-	public ResultSet getResult(String query) {
-		PreparedStatement statement;
-		try {
-			statement = this.connection.prepareStatement(query);
+    Database(Connection connection) {
+        this.connection = connection;
+    }
 
-			return statement.executeQuery();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public ResultSet getResult(String query, Object... args) {
+        try {
+            PreparedStatement statement;
+            statement = this.connection.prepareStatement(query);
+            for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
 
-	public void update(String query) {
-		PreparedStatement statement;
-		try {
-			statement = this.connection.prepareStatement(query);
+            return statement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+        return null;
+    }
+
+    public void update(String query, Object... args) {
+        try {
+            PreparedStatement statement;
+            statement = this.connection.prepareStatement(query);
+            for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

@@ -11,7 +11,7 @@ Build the game-server by using `mvn clean install` .
 
 ### Execute
 
-Run it with `java -jar target/server-0.0.6-jar-with-dependencies.jar` .
+Run it with `java -jar target/server-0.0.8-jar-with-dependencies.jar` .
 
 ### Environment variables
 
@@ -23,13 +23,16 @@ Run it with `java -jar target/server-0.0.6-jar-with-dependencies.jar` .
 | WEBSOCKET_PORT   | 80            |
 | HTTP_PORT        | 8080          |
 | AUTH_ENABLED     | true          |
-| STORAGE_LOCATION | data/         | 
-| SESSION_EXPIRE   | 172800        | 
+| STORAGE_LOCATION | data/         |
+| SESSION_EXPIRE   | 172800        |
 | MYSQL_HOSTNAME   | cryptic       |
 | MYSQL_PORT       | 3306          |
 | MYSQL_USERNAME   | cryptic       |
 | MYSQL_PASSWORD   | cryptic       |
 | MYSQL_DATABSE    | cryptic       |
+| RESPONSE_TIMEOUT | 20            |
+| PRODUCTIVE       | true          |
+| LOG_LEVEL        | INFO          |
 
 ## Docker
 
@@ -37,7 +40,7 @@ Run it with `java -jar target/server-0.0.6-jar-with-dependencies.jar` .
 
 Pull the docker-image from [Docker Hub](https://hub.docker.com/r/useto/cryptic-game-server)!
 
-## documentation
+## Documentation
 
 Visit the [wiki](https://github.com/cryptic-game/server/wiki) for more information.
 
