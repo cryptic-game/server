@@ -25,7 +25,8 @@ public enum DefaultConfig {
     MYSQL_PORT(3306),
     PRODUCTIVE(true),
     SESSION_EXPIRE(60 * 60 * 24 * 2), // 2 days
-    RESPONSE_TIMEOUT(20); // 20 seconds
+    RESPONSE_TIMEOUT(20), // 20 seconds
+    LOG_LEVEL("INFO");
 
     private Object value;
 

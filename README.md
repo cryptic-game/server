@@ -31,7 +31,8 @@ Run it with `java -jar target/server-0.0.8-jar-with-dependencies.jar` .
 | MYSQL_PASSWORD   | cryptic       |
 | MYSQL_DATABSE    | cryptic       |
 | RESPONSE_TIMEOUT | 20            |
-| PRODUCTIVE       | true          |  
+| PRODUCTIVE       | true          |
+| LOG_LEVEL        | INFO          |
 
 ## Docker
 
