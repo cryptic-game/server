@@ -37,7 +37,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         try {
             obj = (JSONObject) new JSONParser().parse(frame.text());
         } catch (ParseException | ClassCastException e) {
-            this.error(ctx.channel(), "unsupported format");
+            this.error(channel, "unsupported format");
             return;
         }
 
@@ -49,9 +49,13 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                     && obj.get("endpoint") instanceof JSONArray) {
                 MicroService ms = MicroService.get((String) obj.get("ms"));
 
-                if (ms != null) {
-                    ms.receive(client, (JSONArray) obj.get("endpoint"), (JSONObject) obj.get("data"));
+                if (ms == null) {
+                    this.error(channel, "unknown microservice");
+                    return;
                 }
+
+                ms.receive(client, (JSONArray) obj.get("endpoint"), (JSONObject) obj.get("data"));
+
             } else {
                 if (!obj.containsKey("action") || !(obj.get("action") instanceof String)) {
                     this.error(channel, "missing action");
