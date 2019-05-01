@@ -17,7 +17,7 @@ public class Database {
         try {
             PreparedStatement statement;
             statement = this.connection.prepareStatement(query);
-            for (int i = 0; i < args.length; i++) statement.setObject(i, args[i]);
+            for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
 
             return statement.executeQuery();
         } catch (SQLException e) {
@@ -31,7 +31,7 @@ public class Database {
         try {
             PreparedStatement statement;
             statement = this.connection.prepareStatement(query);
-            for (int i = 0; i < args.length; i++) statement.setObject(i, args[i]);
+            for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
 
             statement.executeUpdate();
         } catch (SQLException e) {
