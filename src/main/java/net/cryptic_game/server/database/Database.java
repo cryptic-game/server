@@ -12,7 +12,7 @@ public class Database {
     Database(Connection connection) {
         this.connection = connection;
     }
-
+    
     public ResultSet getResult(String query, Object... args) {
         try {
             PreparedStatement statement;
