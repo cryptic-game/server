@@ -82,7 +82,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 				try {
 					JSONObject input = (JSONObject) new JSONParser().parse(payload);
 					if (input.containsKey("data") && input.get("data") instanceof JSONObject && input.containsKey("tag")
-							&& input.get("tag") instanceof UUID) {
+							&& input.get("tag") instanceof String) {
 						JSONObject data = (JSONObject) input.get("data");
 						UUID tag = UUID.fromString((String) input.get("tag"));
 

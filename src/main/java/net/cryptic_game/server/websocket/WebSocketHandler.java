@@ -47,7 +47,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         if (client.isValid() || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
             if (obj.containsKey("ms") && obj.get("ms") instanceof String && obj.containsKey("data")  // microservice
                     && obj.get("data") instanceof JSONObject && obj.containsKey("endpoint")
-                    && obj.get("endpoint") instanceof JSONArray && obj.containsKey("tag") && obj.get("tag") instanceof UUID) {
+                    && obj.get("endpoint") instanceof JSONArray && obj.containsKey("tag") && obj.get("tag") instanceof String) {
                 MicroService ms = MicroService.get((String) obj.get("ms"));
 
                 if (ms == null) {
