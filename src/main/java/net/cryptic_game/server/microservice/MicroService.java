@@ -2,6 +2,7 @@ package net.cryptic_game.server.microservice;
 
 import io.netty.channel.Channel;
 import net.cryptic_game.server.client.Client;
+import net.cryptic_game.server.client.Request;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.socket.SocketServerUtils;
@@ -22,7 +23,7 @@ public class MicroService {
     private static final Logger logger = Logger.getLogger(MicroService.class);
 
     // open requests of client
-    private static Map<UUID, Client> open = new HashMap<>();
+    private static Map<UUID, Request> open = new HashMap<>();
 
     // online microservices
     private static List<MicroService> services = new ArrayList<>();
@@ -50,7 +51,7 @@ public class MicroService {
      * @param endpoint endpoint on ms (string-array)
      * @param input    data sending to ms
      */
-    public void receive(Client client, JSONArray endpoint, JSONObject input) {
+    public void receive(Client client, JSONArray endpoint, JSONObject input, UUID clientTag) {
         UUID tag = UUID.randomUUID();
 
         Map<String, Object> jsonMap = new HashMap<>();
@@ -71,7 +72,7 @@ public class MicroService {
 
         SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
 
-        open.put(tag, client);
+        open.put(tag, new Request(client, clientTag));
         new Thread(() -> {
             try {
                 Thread.sleep(1000 * Config.getInteger(DefaultConfig.RESPONSE_TIMEOUT));
@@ -112,9 +113,9 @@ public class MicroService {
                             return true;
                         }
                     } else {
-                        Client client = open.get(tag);
-                        if (client != null) {
-                            client.send(data);
+                        Request req = open.get(tag);
+                        if (req != null) {
+                            req.send(data);
                             return true;
                         }
                     }
