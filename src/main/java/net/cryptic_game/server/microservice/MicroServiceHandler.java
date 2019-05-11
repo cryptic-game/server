@@ -45,6 +45,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 }
             }
         } catch (ParseException e) {
+        	e.printStackTrace();
             this.error(ctx.channel(), "unsupported format");
             ctx.channel().close();
         }
@@ -63,7 +64,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
         SocketServerUtils.sendJson(channel, new JSONObject(jsonMap));
     }
-
+    
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) {
         MicroService.unregister(ctx.channel());
