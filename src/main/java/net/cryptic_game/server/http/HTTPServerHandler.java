@@ -22,117 +22,123 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
 
 public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        Channel channel = ctx.channel();
-        Client client = Client.getClient(channel);
+	@SuppressWarnings("unchecked")
+	@Override
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		Channel channel = ctx.channel();
+		Client client = Client.getClient(channel);
 
-        if (client != null && msg instanceof FullHttpRequest) {
-            FullHttpRequest request = (FullHttpRequest) msg;
+		if (client != null && msg instanceof FullHttpRequest) {
+			FullHttpRequest request = (FullHttpRequest) msg;
 
-            if (request.method().equals(HttpMethod.GET)) {
-                Map<String, Integer> jsonMap = new HashMap<>();
+			if (request.method().equals(HttpMethod.GET)) {
+				Map<String, Integer> jsonMap = new HashMap<>();
 
-                jsonMap.put("online", Client.getOnlineCount());
+				jsonMap.put("online", Client.getOnlineCount());
 
-                SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
+				SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
 
-                return;
-            }
+				return;
+			}
 
-            boolean authSuccess = false;
+			boolean authSuccess = false;
 
-            if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-                String auth = request.headers().get("Authorization");
+			if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+				String auth = request.headers().get("Authorization");
 
-                if (auth == null) {
-                    this.error(channel, "permissions denied");
-                    return;
-                } else if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
-                    this.error(channel, "invalid authorization");
-                }
+				if (auth == null) {
+					this.error(channel, "permissions denied");
+					return;
+				} else if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
+					this.error(channel, "invalid authorization");
+				}
 
-                String tuple = Base64
-                        .decode(Unpooled.copiedBuffer(auth.split(" ")[1].getBytes(Charset.forName("utf-8"))))
-                        .toString(Charset.forName("utf-8"));
+				String tuple = Base64
+						.decode(Unpooled.copiedBuffer(auth.split(" ")[1].getBytes(Charset.forName("utf-8"))))
+						.toString(Charset.forName("utf-8"));
 
-                if (tuple.contains(":")) {
-                    String name = tuple.split(":")[0];
-                    String password = tuple.substring(name.length() + 1);
+				if (tuple.contains(":")) {
+					String name = tuple.split(":")[0];
+					String password = tuple.substring(name.length() + 1);
 
-                    User user = User.get(name);
+					User user = User.get(name);
 
-                    if (user != null && user.checkPassword(password)) {
-                        authSuccess = true;
-                        client.setUser(user);
-                    }
-                }
-            }
+					if (user != null && user.checkPassword(password)) {
+						authSuccess = true;
+						client.setUser(user);
+					}
+				}
+			}
 
-            if (authSuccess || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-                String payload = request.content().toString(Charset.forName("utf-8"));
+			if (authSuccess || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+				String payload = request.content().toString(Charset.forName("utf-8"));
 
-                try {
-                    JSONObject input = (JSONObject) new JSONParser().parse(payload);
+				try {
+					JSONObject input = (JSONObject) new JSONParser().parse(payload);
+					if (input.containsKey("data") && input.get("data") instanceof JSONObject && input.containsKey("tag")
+							&& input.get("tag") instanceof UUID) {
+						JSONObject data = (JSONObject) input.get("data");
+						UUID tag = UUID.fromString((String) input.get("tag"));
 
-                    if (request.uri().length() > 1) {
-                        String[] args = request.uri().substring(1).split("/");
+						if (request.uri().length() > 1) {
+							String[] args = request.uri().substring(1).split("/");
 
-                        if (args.length > 0) {
-                            MicroService ms = MicroService.get(args[0]);
+							if (args.length > 0) {
+								MicroService ms = MicroService.get(args[0]);
 
-                            if (ms != null) {
-                                JSONArray endpoint = new JSONArray();
+								if (ms != null) {
+									JSONArray endpoint = new JSONArray();
 
-                                endpoint.addAll(Arrays.asList(args).subList(1, args.length));
+									endpoint.addAll(Arrays.asList(args).subList(1, args.length));
 
-                                ms.receive(client, endpoint, input);
-                                return;
-                            }
-                        }
-                    }
-                } catch (ParseException | ClassCastException e) {
-                    this.error(channel, "unsupported format");
-                }
-            } else {
-                this.error(channel, "permissions denied");
-                return;
-            }
+									ms.receive(client, endpoint, data, tag);
+									return;
+								}
+							}
+						}
+					}
+				} catch (ParseException | ClassCastException e) {
+					this.error(channel, "unsupported format");
+				}
+			} else {
+				this.error(channel, "permissions denied");
+				return;
+			}
 
-            this.error(channel, "unsupported format");
-        } else {
-            super.channelRead(ctx, msg);
-        }
-    }
+			this.error(channel, "unsupported format");
+		} else {
+			super.channelRead(ctx, msg);
+		}
+	}
 
-    private void error(Channel channel, String error) {
-        Map<String, String> jsonMap = new HashMap<>();
+	private void error(Channel channel, String error) {
+		Map<String, String> jsonMap = new HashMap<>();
 
-        jsonMap.put("error", error);
+		jsonMap.put("error", error);
 
-        SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
-    }
+		SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
+	}
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                copiedBuffer(cause.getMessage().getBytes())));
-    }
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+		ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
+				copiedBuffer(cause.getMessage().getBytes())));
+	}
 
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) {
-        Client.addClient(ctx.channel(), ClientType.HTTP);
-    }
+	@Override
+	public void handlerAdded(ChannelHandlerContext ctx) {
+		Client.addClient(ctx.channel(), ClientType.HTTP);
+	}
 
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) {
-        Client.removeClient(ctx.channel());
-    }
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) {
+		Client.removeClient(ctx.channel());
+	}
 
 }

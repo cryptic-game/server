@@ -1,5 +1,14 @@
 package net.cryptic_game.server.websocket;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -12,14 +21,6 @@ import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.Session;
 import net.cryptic_game.server.user.User;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
@@ -46,7 +47,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         if (client.isValid() || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
             if (obj.containsKey("ms") && obj.get("ms") instanceof String && obj.containsKey("data")  // microservice
                     && obj.get("data") instanceof JSONObject && obj.containsKey("endpoint")
-                    && obj.get("endpoint") instanceof JSONArray) {
+                    && obj.get("endpoint") instanceof JSONArray && obj.containsKey("tag") && obj.get("tag") instanceof UUID) {
                 MicroService ms = MicroService.get((String) obj.get("ms"));
 
                 if (ms == null) {
@@ -54,7 +55,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                     return;
                 }
 
-                ms.receive(client, (JSONArray) obj.get("endpoint"), (JSONObject) obj.get("data"));
+                ms.receive(client, (JSONArray) obj.get("endpoint"), (JSONObject) obj.get("data"), UUID.fromString((String) obj.get("tag")));
 
             } else {
                 if (!obj.containsKey("action") || !(obj.get("action") instanceof String)) {
