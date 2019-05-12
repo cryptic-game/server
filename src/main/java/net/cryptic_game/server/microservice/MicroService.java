@@ -116,6 +116,7 @@ public class MicroService {
                         Request req = open.get(tag);
                         if (req != null) {
                             req.send(data);
+                            open.remove(tag);
                             return true;
                         }
                     }
