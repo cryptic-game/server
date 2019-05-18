@@ -5,15 +5,52 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class Database {
+import org.apache.log4j.Logger;
+
+public abstract class Database {
 
     private Connection connection;
 
-    Database(Connection connection) {
-        this.connection = connection;
+    private static final Logger logger = Logger.getLogger(Database.class);
+    
+    Database() {
+        try {
+			this.connection = this.createConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public boolean isConnected() {
+    	try {
+			return this.connection != null && !this.connection.isClosed();
+		} catch (SQLException e) {
+			return false;
+		}
+    }
+    
+    public void reconnect() {
+    	logger.error("lost connection to database... trying to reconnect");
+    	while(true) {
+	    	try {
+				this.connection = this.createConnection();
+				logger.info("reconnected to database");
+				return;
+			} catch (SQLException e) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				} // 0.5 seconds
+			}
+    	}
     }
     
     public ResultSet getResult(String query, Object... args) {
+    	if(!this.isConnected()) {
+    		this.reconnect();
+    	}
+    	
         try {
             PreparedStatement statement;
             statement = this.connection.prepareStatement(query);
@@ -28,6 +65,10 @@ public class Database {
     }
 
     public void update(String query, Object... args) {
+    	if(!this.isConnected()) {
+    		this.reconnect();
+    	}
+    	
         try {
             PreparedStatement statement;
             statement = this.connection.prepareStatement(query);
@@ -38,5 +79,7 @@ public class Database {
             e.printStackTrace();
         }
     }
+    
+    public abstract Connection createConnection() throws SQLException;
 
 }

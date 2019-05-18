@@ -1,5 +1,6 @@
 package net.cryptic_game.server.database;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -13,7 +14,7 @@ import net.cryptic_game.server.config.DefaultConfig;
 public class SQLiteDatabase extends Database {
 
 	private static Properties properties;
-
+	
 	static {
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -25,10 +26,17 @@ public class SQLiteDatabase extends Database {
 		properties = sqLiteConfig.toProperties();
 		properties.setProperty(Pragma.DATE_STRING_FORMAT.pragmaName, "yyyy-MM-dd HH:mm:ss");
 	}
+	
+	private String name;
 
-	public SQLiteDatabase(String name) throws SQLException {
-		super(DriverManager.getConnection("jdbc:sqlite:" + Config.get(DefaultConfig.STORAGE_LOCATION) + name,
-				properties));
+	public SQLiteDatabase(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public Connection createConnection() throws SQLException {
+		return DriverManager.getConnection("jdbc:sqlite:" + Config.get(DefaultConfig.STORAGE_LOCATION) + name,
+				properties);
 	}
 
 }

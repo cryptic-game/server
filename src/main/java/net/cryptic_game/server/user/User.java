@@ -22,16 +22,12 @@ public class User {
     static Database db = null;
 
     static {
-
-        try {
-            if (Config.getBoolean(DefaultConfig.PRODUCTIVE)) {
-                db = new MySQLDatabase();
-            } else {
-                db = new SQLiteDatabase("user.db");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        if (Config.getBoolean(DefaultConfig.PRODUCTIVE)) {
+		    db = new MySQLDatabase();
+		} else {
+		    db = new SQLiteDatabase("user.db");
+		}
+        
         db.update("CREATE TABLE IF NOT EXISTS `user` (" +
                 "uuid VARCHAR(36) PRIMARY KEY, " +
                 "name TEXT, mail TEXT, " +
