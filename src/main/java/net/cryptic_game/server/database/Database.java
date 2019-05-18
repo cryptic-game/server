@@ -57,11 +57,10 @@ public abstract class Database {
             for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
 
             return statement.executeQuery();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+        	this.reconnect();
+        	return this.getResult(query, args);
         }
-
-        return null;
     }
 
     public void update(String query, Object... args) {
@@ -75,8 +74,9 @@ public abstract class Database {
             for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
 
             statement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+        	this.reconnect();
+        	this.update(query, args);
         }
     }
     
