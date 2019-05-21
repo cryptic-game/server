@@ -14,59 +14,68 @@ import java.util.UUID;
 
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
-	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, String msg) {
-		try {
-			JSONObject obj = (JSONObject) new JSONParser().parse(msg);
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, String msg) {
+        JSONObject obj;
 
-			MicroService ms = MicroService.get(ctx.channel());
+        try {
+            obj = (JSONObject) new JSONParser().parse(msg);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            this.error(ctx.channel(), "unsupported format");
+            return;
+        }
 
-			if (ms == null || !ms.send(obj)) {
-				if (obj.containsKey("action") && obj.get("action") instanceof String) {
-					String action = (String) obj.get("action");
+        MicroService ms = MicroService.get(ctx.channel());
 
-					if (action.equals("register")) {
-						if (obj.containsKey("name") && obj.get("name") instanceof String) {
-							MicroService.register((String) obj.get("name"), ctx.channel());
-						} else {
-							this.error(ctx.channel(), "name not found");
-						}
-					} else if (action.equals("address")) {
-						if (obj.containsKey("user") && obj.get("user") instanceof String && obj.containsKey("data")
-								&& obj.get("data") instanceof JSONObject) {
-							MicroService.sendToUser(UUID.fromString((String) obj.get("user")),
-									(JSONObject) obj.get("data"));
-						} else {
-							this.error(ctx.channel(), "name not found");
-						}
-					} else {
-						this.error(ctx.channel(), "unknown action");
-					}
-				}
-			}
-		} catch (ParseException e) {
-			this.error(ctx.channel(), "unsupported format");
-			ctx.channel().close();
-		}
-	}
+        if (ms == null || !ms.send(obj)) {
+            if (!obj.containsKey("action") || !(obj.get("action") instanceof String)) {
+                this.error(ctx.channel(), "missing action");
+                return;
+            }
 
-	/**
-	 * Sends an error to a microservice
-	 *
-	 * @param channel channel of receiver
-	 * @param error   the error message
-	 */
-	private void error(Channel channel, String error) {
-		Map<String, String> jsonMap = new HashMap<>();
+            String action = (String) obj.get("action");
 
-		jsonMap.put("error", error);
+            switch (action) {
+                case "register":
+                    if (obj.containsKey("name") && obj.get("name") instanceof String) {
+                        MicroService.register((String) obj.get("name"), ctx.channel());
+                    } else {
+                        this.error(ctx.channel(), "missing parameter");
+                    }
+                    break;
+                case "address":
+                    if (obj.containsKey("user") && obj.get("user") instanceof String && obj.containsKey("data")
+                            && obj.get("data") instanceof JSONObject) {
+                        MicroService.sendToUser(UUID.fromString((String) obj.get("user")), (JSONObject) obj.get("data"));
+                    } else {
+                        this.error(ctx.channel(), "missing parameter");
+                    }
+                    break;
+                default:
+                    this.error(ctx.channel(), "unknown action");
+                    break;
+            }
+        }
+    }
 
-		SocketServerUtils.sendJson(channel, new JSONObject(jsonMap));
-	}
+    /**
+     * Sends an error to a microservice
+     *
+     * @param channel channel of receiver
+     * @param error   the error message
+     */
+    private void error(Channel channel, String error) {
+        Map<String, String> jsonMap = new HashMap<>();
 
-	@Override
-	public void handlerRemoved(ChannelHandlerContext ctx) {
-		MicroService.unregister(ctx.channel());
-	}
+        jsonMap.put("error", error);
+
+        SocketServerUtils.sendJson(channel, new JSONObject(jsonMap));
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) {
+        MicroService.unregister(ctx.channel());
+    }
 
 }
