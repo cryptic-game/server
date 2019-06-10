@@ -170,7 +170,7 @@ public class User {
     }
 
     public static boolean isValidPassword(String password) {
-        return Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}").matcher(password).find();
+        return Pattern.compile("(?=.*\\d)((?=.*[a-z])|(?=.*[A-Z]))(?=.*[!\"#$%`&\\\\'()*+,.\\/:;<=>?@\\[\\]^_{|}~-]).{8,}").matcher(password).find();
     }
 
     private static String hashPassword(String toHash) {
