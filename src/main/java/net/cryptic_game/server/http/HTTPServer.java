@@ -1,5 +1,7 @@
 package net.cryptic_game.server.http;
 
+import org.apache.log4j.Logger;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -8,6 +10,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class HTTPServer {
 
+    private static final Logger logger = Logger.getLogger(HTTPServer.class);
+	
     private int port;
     private final EventLoopGroup masterGroup;
     private final EventLoopGroup slaveGroup;
@@ -25,6 +29,7 @@ public class HTTPServer {
                     .channel(NioServerSocketChannel.class).childHandler(new HTTPServerInitializer())
                     .option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
             bootstrap.bind(this.port).sync();
+            logger.info("http booted on port " + port);
         } catch (final InterruptedException ignored) {
         }
     }

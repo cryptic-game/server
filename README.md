@@ -29,7 +29,7 @@ Run it with `java -jar target/server-0.0.9-jar-with-dependencies.jar` .
 | MYSQL_PORT       | 3306          |
 | MYSQL_USERNAME   | cryptic       |
 | MYSQL_PASSWORD   | cryptic       |
-| MYSQL_DATABSE    | cryptic       |
+| MYSQL_DATABASE   | cryptic       |
 | RESPONSE_TIMEOUT | 20            |
 | PRODUCTIVE       | true          |
 | LOG_LEVEL        | INFO          |
