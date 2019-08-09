@@ -10,14 +10,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-/**
- * cryptic-game-server for managing microservices
- *
- * @author use-to
- * @author cryptic-game.net
- * @version 0.0.8-SNAPSHOT
- */
-
 public class App {
 
     public static void main(String[] args) {

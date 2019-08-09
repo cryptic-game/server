@@ -13,30 +13,30 @@ import net.cryptic_game.server.config.DefaultConfig;
 
 public class SQLiteDatabase extends Database {
 
-	private static Properties properties;
-	
-	static {
-		try {
-			Class.forName("org.sqlite.JDBC");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+    private static Properties properties;
 
-		SQLiteConfig sqLiteConfig = new SQLiteConfig();
-		properties = sqLiteConfig.toProperties();
-		properties.setProperty(Pragma.DATE_STRING_FORMAT.pragmaName, "yyyy-MM-dd HH:mm:ss");
-	}
-	
-	private String name;
+    static {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
 
-	public SQLiteDatabase(String name) {
-		this.name = name;
-	}
+        SQLiteConfig sqLiteConfig = new SQLiteConfig();
+        properties = sqLiteConfig.toProperties();
+        properties.setProperty(Pragma.DATE_STRING_FORMAT.pragmaName, "yyyy-MM-dd HH:mm:ss");
+    }
 
-	@Override
-	public Connection createConnection() throws SQLException {
-		return DriverManager.getConnection("jdbc:sqlite:" + Config.get(DefaultConfig.STORAGE_LOCATION) + name,
-				properties);
-	}
+    private String name;
+
+    public SQLiteDatabase(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public Connection createConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:sqlite:" + Config.get(DefaultConfig.STORAGE_LOCATION) + name,
+                properties);
+    }
 
 }

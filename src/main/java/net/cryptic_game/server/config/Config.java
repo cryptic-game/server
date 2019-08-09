@@ -2,14 +2,6 @@ package net.cryptic_game.server.config;
 
 import java.util.Map;
 
-/**
- *
- * Handles the environment variables
- *
- * @author use-to
- *
- */
-
 public class Config {
 
     private static Map<String, String> env = System.getenv();

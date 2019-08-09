@@ -1,223 +1,211 @@
 package net.cryptic_game.server.microservice;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.apache.log4j.Logger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 import io.netty.channel.Channel;
 import net.cryptic_game.server.client.Client;
 import net.cryptic_game.server.client.Request;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
-import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.User;
+import net.cryptic_game.server.utils.JSON;
+import net.cryptic_game.server.utils.JSONBuilder;
+import org.apache.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
-/**
- * microservice wrapper
- *
- * @author use-to
- */
+import java.util.*;
+
+import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
+import static net.cryptic_game.server.utils.JSONBuilder.error;
+
 public class MicroService {
 
-	private static final Logger logger = Logger.getLogger(MicroService.class);
+    private static final Logger logger = Logger.getLogger(MicroService.class);
 
-	// open requests of client
-	private static Map<UUID, Request> open = new HashMap<>();
+    // open requests of client
+    private static Map<UUID, Request> open = new HashMap<>();
 
-	// online microservices
-	private static List<MicroService> services = new ArrayList<>();
+    // online microservices
+    private static List<MicroService> services = new ArrayList<>();
 
-	private String name; // name of ms
-	private Channel channel; // socket-channel of ms
+    private String name; // name of ms
+    private Channel channel; // socket-channel of ms
 
-	public MicroService(String name, Channel channel) {
-		this.name = name;
-		this.channel = channel;
-	}
+    private MicroService(String name, Channel channel) {
+        this.name = name;
+        this.channel = channel;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public Channel getChannel() {
-		return channel;
-	}
+    public Channel getChannel() {
+        return channel;
+    }
 
-	/**
-	 * Sends data to microservice
-	 *
-	 * @param client   channel of client (for response)
-	 * @param endpoint endpoint on ms (string-array)
-	 * @param input    data sending to ms
-	 */
-	public void receive(Client client, JSONArray endpoint, JSONObject input, UUID clientTag) {
-		UUID tag = UUID.randomUUID();
+    /**
+     * Sends data to microservice
+     *
+     * @param client   channel of client (for response)
+     * @param endpoint endpoint on ms (string-array)
+     * @param input    data sending to ms
+     */
+    public void receive(Client client, JSONArray endpoint, JSONObject input, UUID clientTag) {
+        UUID tag = UUID.randomUUID();
 
-		Map<String, Object> jsonMap = new HashMap<>();
+        JSONBuilder jsonBuilder = JSONBuilder.anJSON()
+                .add("tag", tag.toString())
+                .add("data", input)
+                .add("endpoint", endpoint);
 
-		jsonMap.put("tag", tag.toString());
-		jsonMap.put("data", input);
-		jsonMap.put("endpoint", endpoint);
+        if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+            if (!client.isValid()) {
+                return;
+            } else {
+                jsonBuilder.add("user", client.getUser().getUUID().toString());
+            }
+        } else {
+            jsonBuilder.add("user", UUID.fromString("00000000-0000-0000-0000-000000000000").toString());
+        }
 
-		if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-			if (!client.isValid()) {
-				return;
-			} else {
-				jsonMap.put("user", client.getUser().getUUID().toString());
-			}
-		} else {
-			jsonMap.put("user", UUID.fromString("00000000-0000-0000-0000-000000000000").toString());
-		}
+        JSONObject json = jsonBuilder.build();
 
-		JSONObject json = new JSONObject(jsonMap);
+        sendRaw(getChannel(), json);
+        open.put(tag, new Request(client, clientTag, getName(), json));
 
-		SocketServerUtils.sendJson(this.getChannel(), json);
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000 * Config.getInteger(DefaultConfig.RESPONSE_TIMEOUT));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-		open.put(tag, new Request(client, clientTag, this.getName(), json));
-		new Thread(() -> {
-			try {
-				Thread.sleep(1000 * Config.getInteger(DefaultConfig.RESPONSE_TIMEOUT));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+            if (open.containsKey(tag)) {
+                open.remove(tag).send(error("timeout"));
+            }
+        }).start();
+    }
 
-			if (open.containsKey(tag)) {
-				Map<String, String> map = new HashMap<>();
+    /**
+     * Sends data back to client
+     *
+     * @param output data from microservice
+     * @return success
+     */
+    boolean send(JSONObject output) {
+        JSON json = new JSON(output);
 
-				map.put("error", "no response - timeout");
+        JSONObject data = json.get("data");
+        if (data == null) {
+            return false;
+        }
 
-				open.remove(tag).send(new JSONObject(map));
-			}
-		}).start();
-	}
+        UUID tag;
+        try {
+            tag = UUID.fromString(json.get("tag"));
+        } catch (IllegalArgumentException | NullPointerException ignored) {
+            return false;
+        }
 
-	/**
-	 * Sends data back to client
-	 *
-	 * @param output data from microservice
-	 * @return success
-	 */
-	public boolean send(JSONObject output) {
-		try {
-			if (output.containsKey("data") && output.get("data") instanceof JSONObject) {
-				JSONObject data = (JSONObject) output.get("data");
+        MicroService microService = MicroService.get(json.<String>get("ms"));
+        JSONArray endpoint = json.get("endpoint");
+        if (microService == null || endpoint == null) {
+            Request req = open.get(tag);
+            if (req != null) {
+                req.send(data);
+                open.remove(tag);
+            }
 
-				if (output.containsKey("tag") && output.get("tag") instanceof String) {
-					UUID tag = UUID.fromString((String) output.get("tag"));
+            return true;
+        }
 
-					if (output.containsKey("ms") && output.get("ms") instanceof String && output.containsKey("endpoint")
-							&& output.get("endpoint") instanceof JSONArray) {
-						MicroService ms = MicroService.get((String) output.get("ms"));
+        microService.receiveFromMicroService(this, endpoint, tag, data);
 
-						if (ms != null) {
-							ms.receiveFromMicroService(this, (JSONArray) output.get("endpoint"), tag, data);
-							return true;
-						}
-					} else {
-						Request req = open.get(tag);
-						if (req != null) {
-							req.send(data);
-							open.remove(tag);
-							return true;
-						}
-					}
-				}
-			}
-		} catch (ClassCastException e) {
-		}
-		return false;
-	}
+        return true;
+    }
 
-	/**
-	 * Receives data from another microservice no requests
-	 *
-	 * @param ms   microservice
-	 * @param data data of the sender
-	 */
-	private void receiveFromMicroService(MicroService ms, JSONArray endpoint, UUID tag, JSONObject data) {
-		Map<String, Object> jsonMap = new HashMap<>();
+    /**
+     * Receives data from another microservice no requests
+     *
+     * @param ms   microservice
+     * @param data data of the sender
+     */
+    private void receiveFromMicroService(MicroService ms, JSONArray endpoint, UUID tag, JSONObject data) {
+        sendRaw(channel, JSONBuilder.anJSON()
+                .add("ms", ms.getName())
+                .add("endpoint", endpoint)
+                .add("tag", tag.toString())
+                .add("data", data).build());
+    }
 
-		jsonMap.put("ms", ms.getName());
-		jsonMap.put("endpoint", endpoint);
-		jsonMap.put("tag", tag.toString());
-		jsonMap.put("data", data);
+    /**
+     * Registers a microservice
+     *
+     * @param name    name of the microservice
+     * @param channel channel of the microservice
+     */
+    static void register(String name, Channel channel) {
+        services.add(new MicroService(name, channel));
+        logger.info("microservice registered: " + name);
 
-		SocketServerUtils.sendJson(this.getChannel(), new JSONObject(jsonMap));
-	}
+        for (Request r : open.values()) {
+            if (r.getMicroservice().equals(name)) {
+                sendRaw(channel, r.getData());
+                return;
+            }
+        }
+    }
 
-	/**
-	 * Registers a microservice
-	 *
-	 * @param name    name of the microservice
-	 * @param channel channel of the microservice
-	 */
-	public static void register(String name, Channel channel) {
-		services.add(new MicroService(name, channel));
-		logger.info("microservice registered: " + name);
+    /**
+     * Unregisters a microservice
+     *
+     * @param channel channel of the microservice
+     */
+    static void unregister(Channel channel) {
+        MicroService ms = MicroService.get(channel);
 
-		for (Request r : open.values()) {
-			if (r.getMicroservice().equals(name)) {
-				SocketServerUtils.sendJson(channel, r.getData());
-			}
-		}
-	}
+        if (ms != null) {
+            services.remove(ms);
+            logger.info("microservice unregistered: " + ms.getName());
+        }
+    }
 
-	/**
-	 * Unregisters a microservice
-	 *
-	 * @param channel channel of the microservice
-	 */
-	public static void unregister(Channel channel) {
-		MicroService ms = MicroService.get(channel);
+    /**
+     * @param name name of the microservice
+     * @return the microservice by name or null
+     */
+    public static MicroService get(String name) {
+        for (MicroService ms : services) {
+            if (ms.getName().equals(name)) {
+                return ms;
+            }
+        }
+        return null;
+    }
 
-		if (ms != null) {
-			services.remove(ms);
-			logger.info("microservice unregistered: " + ms.getName());
-		}
-	}
+    /**
+     * @param channel channel of the microservice
+     * @return the microservice by channel or null
+     */
+    public static MicroService get(Channel channel) {
+        for (MicroService ms : services) {
+            if (ms.getChannel().equals(channel)) {
+                return ms;
+            }
+        }
+        return null;
+    }
 
-	/**
-	 * @param name name of the microservice
-	 * @return the microservice by name or null
-	 */
-	public static MicroService get(String name) {
-		for (MicroService ms : services) {
-			if (ms.getName().equals(name)) {
-				return ms;
-			}
-		}
-		return null;
-	}
+    static void sendToUser(UUID user, JSONObject data) {
+        User userAccount = User.get(user);
 
-	/**
-	 * @param channel channel of the microservice
-	 * @return the microservice by channel or null
-	 */
-	public static MicroService get(Channel channel) {
-		for (MicroService ms : services) {
-			if (ms.getChannel().equals(channel)) {
-				return ms;
-			}
-		}
-		return null;
-	}
+        if (userAccount != null) {
+            Client clientOfUser = Client.getClient(userAccount);
 
-	public static void sendToUser(UUID user, JSONObject data) {
-		User userAccount = User.get(user);
-
-		if (userAccount != null) {
-			Client clientOfUser = Client.getClient(userAccount);
-
-			if (clientOfUser != null) {
-				clientOfUser.send(data);
-			}
-		}
-	}
+            if (clientOfUser != null) {
+                clientOfUser.send(data);
+            }
+        }
+    }
 
 }
