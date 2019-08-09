@@ -39,7 +39,7 @@ public class SocketSever {
                 f.channel().closeFuture().sync();
             }
         } catch (Exception e) {
-            logger.error("Cannot bind port to" + port);
+            logger.error("Cannot bind port to " + port);
         }
     }
 
