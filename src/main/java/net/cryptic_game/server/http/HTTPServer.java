@@ -11,7 +11,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class HTTPServer {
 
     private static final Logger logger = Logger.getLogger(HTTPServer.class);
-	
+
     private int port;
     private final EventLoopGroup masterGroup;
     private final EventLoopGroup slaveGroup;

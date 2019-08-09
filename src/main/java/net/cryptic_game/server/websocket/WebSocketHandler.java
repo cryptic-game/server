@@ -1,14 +1,5 @@
 package net.cryptic_game.server.websocket;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -21,6 +12,18 @@ import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.Session;
 import net.cryptic_game.server.user.User;
+import net.cryptic_game.server.utils.JSON;
+import net.cryptic_game.server.utils.JSONBuilder;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.util.UUID;
+
+import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
+import static net.cryptic_game.server.utils.JSONBuilder.simple;
 
 public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
@@ -29,50 +32,58 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         Channel channel = ctx.channel();
         Client client = Client.getClient(channel);
         if (client == null) {
-            this.error(channel, "unexpected error");
-            throw new IllegalStateException("Unexpected error: no client was found for channel");
-        }
-
-        JSONObject obj;
-
-        try {
-            obj = (JSONObject) new JSONParser().parse(frame.text());
-        } catch (ParseException | ClassCastException e) {
-            this.error(channel, "unsupported format");
+            sendWebsocket(channel, UNEXPECTED_ERROR);
             return;
         }
 
-        // Logged in actions
+        JSONObject obj;
+        try {
+            obj = (JSONObject) new JSONParser().parse(frame.text());
+        } catch (ParseException | ClassCastException e) {
+            sendWebsocket(channel, UNSUPPORTED_FORMAT);
+            return;
+        }
+
+        JSON json = new JSON(obj);
 
         if (client.isValid() || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-            if (obj.containsKey("ms") && obj.get("ms") instanceof String && obj.containsKey("data")  // microservice
-                    && obj.get("data") instanceof JSONObject && obj.containsKey("endpoint")
-                    && obj.get("endpoint") instanceof JSONArray && obj.containsKey("tag") && obj.get("tag") instanceof String) {
-                MicroService ms = MicroService.get((String) obj.get("ms"));
+            MicroService microService = MicroService.get(json.<String>get("ms"));
+            if (microService == null) {
+                sendWebsocket(channel, UNKNOWN_MICROSERVICE);
+                return;
+            }
 
-                if (ms == null) {
-                    this.error(channel, "unknown microservice");
+            UUID tag;
+            try {
+                tag = UUID.fromString(json.get("tag"));
+            } catch (IllegalArgumentException | NullPointerException ex) {
+                sendWebsocket(channel, MISSING_ACTION);
+                return;
+            }
+
+            JSONObject data = json.get("data");
+            JSONArray endpoint = json.get("endpoint");
+
+            if (data == null || endpoint == null) {
+                String action = json.get("action");
+
+                if (action == null) {
+                    sendWebsocket(channel, MISSING_ACTION);
                     return;
                 }
 
-                ms.receive(client, (JSONArray) obj.get("endpoint"), (JSONObject) obj.get("data"), UUID.fromString((String) obj.get("tag")));
-
-            } else {
-                if (!obj.containsKey("action") || !(obj.get("action") instanceof String)) {
-                    this.error(channel, "missing action");
-                    return;
-                }
-
-                switch ((String) obj.get("action")) {
+                switch (action) {
                     case "info": {
-                        Map<String, Object> jsonMap = new HashMap<>();
-                        jsonMap.put("name", client.getUser().getName());
-                        jsonMap.put("mail", client.getUser().getMail());
-                        jsonMap.put("created", client.getUser().getCreated().getTime());
-                        jsonMap.put("last", client.getUser().getLast().getTime());
-                        jsonMap.put("online", Client.getOnlineCount());
+                        User user = client.getUser();
 
-                        this.respond(channel, jsonMap);
+                        JSONBuilder jsonBuilder = JSONBuilder.anJSON()
+                                .add("name", user.getName())
+                                .add("mail", user.getMail())
+                                .add("created", user.getCreated().getTime())
+                                .add("last", user.getLast().getTime())
+                                .add("online", Client.getOnlineCount());
+
+                        SocketServerUtils.sendWebsocket(channel, jsonBuilder.build());
 
                         break;
                     }
@@ -80,61 +91,62 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         // TODO
                     }
                     default: {
-                        this.error(channel, "invalid action");
+                        sendWebsocket(channel, UNKNOWN_ACTION);
                         break;
                     }
                 }
+            } else {
+                microService.receive(client, endpoint, data, tag);
             }
             return;
         }
 
-        // Not logged in actions
-
-        if (!obj.containsKey("action") || !(obj.get("action") instanceof String)) {
-            this.error(channel, "missing action");
+        String action = json.get("action");
+        if (action == null) {
+            sendWebsocket(channel, MISSING_ACTION);
             return;
         }
 
-        switch ((String) obj.get("action")) {
-            case "status":
-                Map<String, Object> status = new HashMap<>();
-
-                status.put("online", Client.getOnlineCount());
-
-                this.respond(channel, status);
+        switch (action) {
+            case "status": {
+                SocketServerUtils.sendWebsocket(channel, simple("online", Client.getOnlineCount()));
 
                 break;
-            case "session":
-                if (!obj.containsKey("token") || !(obj.get("token") instanceof String)) {
-                    this.error(channel, "missing parameters");
+            }
+            case "session": {
+                UUID token;
+                try {
+                    token = UUID.fromString(json.get("token"));
+                } catch (IllegalArgumentException | NullPointerException ex) {
+                    sendWebsocket(channel, MISSING_PARAMETERS);
                     return;
                 }
 
-                Session session = Session.get(UUID.fromString((String) obj.get("token")));
+                Session session = Session.get(token);
 
                 if (session != null && session.isValid()) {
                     client.setUser(session.getUser());
 
-                    Map<String, Object> jsonMap = new HashMap<>();
-
-                    jsonMap.put("token", session.getToken().toString());
-
-                    this.respond(channel, jsonMap);
+                    SocketServerUtils.sendWebsocket(channel, simple("token", session.getToken().toString()));
                 } else {
-                    this.error(channel, "invalid token");
+                    sendWebsocket(channel, INVALID_TOKEN);
                 }
 
                 break;
+            }
             case "login": {
-                if (!(obj.containsKey("name") && obj.get("name") instanceof String && obj.containsKey("password")
-                        && obj.get("password") instanceof String)) {
-                    this.error(channel, "missing parameters");
+                String name = json.get("name");
+                String password = json.get("password");
+
+                if (name == null || password == null) {
+                    sendWebsocket(channel, MISSING_PARAMETERS);
                     return;
                 }
 
-                User user = User.get((String) obj.get("name"));
-                if (user == null || !user.checkPassword((String) obj.get("password"))) {
-                    this.error(channel, "permission denied");
+                User user = User.get(name);
+
+                if (user == null || !user.checkPassword(password)) {
+                    sendWebsocket(channel, PERMISSION_DENIED);
                     return;
                 }
 
@@ -143,30 +155,28 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 break;
             }
             case "register": {
-                if (!obj.containsKey("name") || !(obj.get("name") instanceof String) || !obj.containsKey("password")
-                        || !(obj.get("password") instanceof String) || !obj.containsKey("mail")
-                        || !(obj.get("mail") instanceof String)) {
-                    this.error(channel, "missing parameters");
+                String name = json.get("name");
+                String password = json.get("password");
+                String mail = json.get("mail");
+
+                if (name == null || password == null || mail == null) {
+                    sendWebsocket(channel, MISSING_PARAMETERS);
                     return;
                 }
 
-                String name = (String) obj.get("name");
-                String password = (String) obj.get("password");
-                String mail = (String) obj.get("mail");
-
                 if (!User.isValidPassword(password)) {
-                    this.error(channel, "password invalid (condition: minimum 8 chars, one digit)");
+                    sendWebsocket(channel, INVALID_PASSWORD);
                     return;
                 }
 
                 if (!User.isValidMailAddress(mail)) {
-                    this.error(channel, "email invalid");
+                    sendWebsocket(channel, INVALID_EMAIL);
                     return;
                 }
 
                 User user = User.create(name, mail, password);
                 if (user == null) {
-                    this.error(channel, "username already exists");
+                    sendWebsocket(channel, USERNAME_ALREADY_EXISTS);
                     return;
                 }
 
@@ -175,32 +185,29 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 break;
             }
             case "password": {
-                if (!obj.containsKey("name") || !(obj.get("name") instanceof String) || !obj.containsKey("password")
-                        || !(obj.get("password") instanceof String) || !obj.containsKey("new")
-                        || !(obj.get("new") instanceof String)) {
-                    this.error(channel, "missing parameters");
+                String name = json.get("name");
+                String password = json.get("password");
+                String newPassword = json.get("new");
+
+                if (name == null || password == null || newPassword == null) {
+                    sendWebsocket(channel, MISSING_PARAMETERS);
                     return;
                 }
 
-                User user = User.get((String) obj.get("name"));
+                User user = User.get(name);
 
-                if (user != null && user.changePassword((String) obj.get("password"), (String) obj.get("new"))) {
-                    Map<String, Object> jsonMap = new HashMap<>();
-
-                    jsonMap.put("success", true);
-
-                    this.respond(channel, jsonMap);
+                if (user != null && user.changePassword(password, newPassword)) {
+                    SocketServerUtils.sendWebsocket(channel, simple("success", true));
                 } else {
-                    this.error(channel, "permission denied");
+                    sendWebsocket(channel, PERMISSION_DENIED);
                 }
 
                 break;
             }
             default:
-                this.error(channel, "unknown action");
+                sendWebsocket(channel, UNKNOWN_ACTION);
                 break;
         }
-
     }
 
     private void login(Channel channel, Client client, User user) {
@@ -208,22 +215,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
         client.setUser(user);
 
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("token", session.getToken().toString());
-
-        this.respond(channel, jsonMap);
-    }
-
-    private void error(Channel channel, String error) {
-        Map<String, Object> jsonMap = new HashMap<>();
-
-        jsonMap.put("error", error);
-
-        this.respond(channel, jsonMap);
-    }
-
-    private void respond(Channel channel, Map<String, Object> data) {
-        SocketServerUtils.sendJsonToClient(channel, new JSONObject(data));
+        SocketServerUtils.sendWebsocket(channel, simple("token", session.getToken().toString()));
     }
 
     @Override

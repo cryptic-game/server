@@ -11,134 +11,140 @@ import net.cryptic_game.server.client.ClientType;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.microservice.MicroService;
-import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.User;
+import net.cryptic_game.server.utils.JSON;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
+import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.socket.SocketServerUtils.sendHTTP;
+import static net.cryptic_game.server.utils.JSONBuilder.simple;
 
 public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		Channel channel = ctx.channel();
-		Client client = Client.getClient(channel);
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        Channel channel = ctx.channel();
 
-		if (client != null && msg instanceof FullHttpRequest) {
-			FullHttpRequest request = (FullHttpRequest) msg;
+        Client client = Client.getClient(channel);
+        if (client == null || !(msg instanceof FullHttpRequest)) {
+            sendHTTP(channel, UNEXPECTED_ERROR);
+            return;
+        }
 
-			if (request.method().equals(HttpMethod.GET)) {
-				Map<String, Integer> jsonMap = new HashMap<>();
+        FullHttpRequest request = (FullHttpRequest) msg;
+        if (request.method().equals(HttpMethod.GET)) {
+            sendHTTP(channel, simple("online", Client.getOnlineCount()));
+            return;
+        }
 
-				jsonMap.put("online", Client.getOnlineCount());
+        if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
+            String auth = request.headers().get("Authorization");
 
-				SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
+            if (auth == null) {
+                sendHTTP(channel, PERMISSION_DENIED);
+                return;
+            }
 
-				return;
-			}
+            if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
+                sendHTTP(channel, INVALID_AUTHORIZATION);
+                return;
+            }
 
-			boolean authSuccess = false;
+            String tuple = Base64
+                    .decode(Unpooled.copiedBuffer(auth.split(" ")[1].getBytes(StandardCharsets.UTF_8)))
+                    .toString(StandardCharsets.UTF_8);
 
-			if (Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-				String auth = request.headers().get("Authorization");
+            if (!tuple.contains(":")) {
+                sendHTTP(channel, PERMISSION_DENIED);
+                return;
+            }
 
-				if (auth == null) {
-					this.error(channel, "permissions denied");
-					return;
-				} else if (auth.split(" ").length != 2 || !auth.split(" ")[0].equals("Basic")) {
-					this.error(channel, "invalid authorization");
-				}
+            String name = tuple.split(":")[0];
+            String password = tuple.substring(name.length() + 1);
 
-				String tuple = Base64
-						.decode(Unpooled.copiedBuffer(auth.split(" ")[1].getBytes(Charset.forName("utf-8"))))
-						.toString(Charset.forName("utf-8"));
+            User user = User.get(name);
 
-				if (tuple.contains(":")) {
-					String name = tuple.split(":")[0];
-					String password = tuple.substring(name.length() + 1);
+            if (user == null || !user.checkPassword(password)) {
+                sendHTTP(channel, PERMISSION_DENIED);
+                return;
+            }
 
-					User user = User.get(name);
+            client.setUser(user);
+        }
 
-					if (user != null && user.checkPassword(password)) {
-						authSuccess = true;
-						client.setUser(user);
-					}
-				}
-			}
+        String payload = request.content().toString(StandardCharsets.UTF_8);
 
-			if (authSuccess || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-				String payload = request.content().toString(Charset.forName("utf-8"));
+        JSONObject obj;
+        try {
+            obj = (JSONObject) new JSONParser().parse(payload);
+        } catch (ParseException | ClassCastException ignored) {
+            sendHTTP(channel, UNSUPPORTED_FORMAT);
+            return;
+        }
 
-				try {
-					JSONObject input = (JSONObject) new JSONParser().parse(payload);
-					if (input.containsKey("data") && input.get("data") instanceof JSONObject && input.containsKey("tag")
-							&& input.get("tag") instanceof String) {
-						JSONObject data = (JSONObject) input.get("data");
-						UUID tag = UUID.fromString((String) input.get("tag"));
+        JSON json = new JSON(obj);
 
-						if (request.uri().length() > 1) {
-							String[] args = request.uri().substring(1).split("/");
+        JSONObject data = json.get("data");
+        if (data == null) {
+            sendHTTP(channel, MISSING_PARAMETERS);
+            return;
+        }
 
-							if (args.length > 0) {
-								MicroService ms = MicroService.get(args[0]);
+        UUID tag;
+        try {
+            tag = UUID.fromString(json.get("tag"));
+        } catch (IllegalArgumentException | NullPointerException ignored) {
+            sendHTTP(channel, MISSING_PARAMETERS);
+            return;
+        }
 
-								if (ms != null) {
-									JSONArray endpoint = new JSONArray();
+        if (request.uri().length() <= 1) {
+            sendHTTP(channel, UNSUPPORTED_FORMAT);
+            return;
+        }
 
-									endpoint.addAll(Arrays.asList(args).subList(1, args.length));
+        String[] args = request.uri().substring(1).split("/");
 
-									ms.receive(client, endpoint, data, tag);
-									return;
-								}
-							}
-						}
-					}
-				} catch (ParseException | ClassCastException e) {
-					this.error(channel, "unsupported format");
-				}
-			} else {
-				this.error(channel, "permissions denied");
-				return;
-			}
+        if (args.length == 0) {
+            sendHTTP(channel, UNSUPPORTED_FORMAT);
+            return;
+        }
 
-			this.error(channel, "unsupported format");
-		} else {
-			super.channelRead(ctx, msg);
-		}
-	}
+        MicroService ms = MicroService.get(args[0]);
+        if (ms == null) {
+            sendHTTP(channel, UNSUPPORTED_FORMAT);
+            return;
+        }
 
-	private void error(Channel channel, String error) {
-		Map<String, String> jsonMap = new HashMap<>();
+        JSONArray endpoint = new JSONArray();
 
-		jsonMap.put("error", error);
+        endpoint.addAll(Arrays.asList(args).subList(1, args.length));
 
-		SocketServerUtils.sendJsonToHTTPClient(channel, new JSONObject(jsonMap));
-	}
+        ms.receive(client, endpoint, data, tag);
+    }
 
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-		ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
-				copiedBuffer(cause.getMessage().getBytes())));
-	}
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                copiedBuffer(cause.getMessage().getBytes())));
+    }
 
-	@Override
-	public void handlerAdded(ChannelHandlerContext ctx) {
-		Client.addClient(ctx.channel(), ClientType.HTTP);
-	}
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+        Client.addClient(ctx.channel(), ClientType.HTTP);
+    }
 
-	@Override
-	public void handlerRemoved(ChannelHandlerContext ctx) {
-		Client.removeClient(ctx.channel());
-	}
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) {
+        Client.removeClient(ctx.channel());
+    }
 
 }

@@ -51,8 +51,4 @@ public class SocketSever {
         return name;
     }
 
-    public int getPort() {
-        return port;
-    }
-
 }
