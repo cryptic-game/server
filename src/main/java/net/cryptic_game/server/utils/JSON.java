@@ -12,10 +12,7 @@ public class JSON {
 
     public <T> T get(String key) {
         if(obj.containsKey(key)) {
-            try {
-                return (T) obj.get(key);
-            } catch(ClassCastException ignored) {
-            }
+            return (T) obj.get(key);
         }
 
         return null;
