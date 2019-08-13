@@ -28,7 +28,7 @@ class JSONTest {
         given(jsonObjectMock.containsKey(key)).willReturn(true);
         given(jsonObjectMock.get(key)).willReturn(value);
 
-        assertEquals(value, json.get(key));
+        assertEquals(value, json.get(key, JSONObject.class));
     }
 
     @Test
@@ -39,9 +39,7 @@ class JSONTest {
         given(jsonObjectMock.containsKey(key)).willReturn(true);
         given(jsonObjectMock.get(key)).willReturn(value);
 
-        assertThrows(ClassCastException.class, () -> {
-            JSONArray unused = json.get(key);
-        });
+        assertNull(json.get(key, JSONArray.class));
     }
 
 }
