@@ -1,84 +1,69 @@
 package net.cryptic_game.server.database;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import net.cryptic_game.server.config.Config;
+import net.cryptic_game.server.config.DefaultConfig;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
+import org.hibernate.service.ServiceRegistry;
 
-import org.apache.log4j.Logger;
+import java.util.Calendar;
+import java.util.Properties;
 
-public abstract class Database {
+public class Database {
 
-    private Connection connection;
+    private static Database instance;
 
-    private static final Logger logger = Logger.getLogger(Database.class);
+    private SessionFactory sessionFactory;
 
-    Database() {
-        try {
-            connection = createConnection();
-        } catch (SQLException ignored) {
-        }
-    }
-
-    private boolean isDisconnected() {
-        try {
-            return connection != null && !connection.isClosed();
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
-    private void reconnect() {
-        logger.error("lost connection to database... trying to reconnect");
-        while (true) {
-            try {
-                connection = createConnection();
-                logger.info("reconnected to database");
-                return;
-            } catch (SQLException ignored) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                } // 0.5 seconds
-            }
-        }
-    }
-
-    public ResultSet getResult(String query, Object... args) {
-        if (isDisconnected()) {
-            reconnect();
-        }
+    public Database() {
+        instance = this;
 
         try {
-            PreparedStatement statement;
-            statement = connection.prepareStatement(query);
-            for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
+            Configuration cfg = getConfiguration();
+            ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                    .applySettings(cfg.getProperties()).build();
 
-            return statement.executeQuery();
+            sessionFactory = cfg.buildSessionFactory(serviceRegistry);
+
         } catch (Exception e) {
-            reconnect();
-            return getResult(query, args);
+            e.printStackTrace();
         }
     }
 
-    public void update(String query, Object... args) {
-        if(isDisconnected()) {
-            reconnect();
-        }
-
-        try {
-            PreparedStatement statement;
-            statement = connection.prepareStatement(query);
-            for (int i = 0; i < args.length; i++) statement.setObject(i + 1, args[i]);
-
-            statement.executeUpdate();
-        } catch (Exception e) {
-            reconnect();
-            update(query, args);
-        }
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
     }
 
-    public abstract Connection createConnection() throws SQLException;
+    public Session openSession() {
+        return sessionFactory.openSession();
+    }
 
+    private Configuration getConfiguration() {
+        Configuration configuration = new Configuration();
+
+        Properties settings = new Properties();
+
+        settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
+        settings.put(Environment.URL, "jdbc:mysql://" + Config.get(DefaultConfig.MYSQL_HOSTNAME) + ":" + Config.get(DefaultConfig.MYSQL_PORT)
+                        + "/" + Config.get(DefaultConfig.MYSQL_DATABASE) + "?serverTimezone=" + Calendar.getInstance().getTimeZone().getID());
+        settings.put(Environment.USER, Config.get(DefaultConfig.MYSQL_USERNAME));
+        settings.put(Environment.PASS, Config.get(DefaultConfig.MYSQL_PASSWORD));
+        settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
+        settings.put(Environment.SHOW_SQL, "true");
+        settings.put(Environment.HBM2DDL_AUTO, "validate");
+
+        configuration.setProperties(settings);
+
+        configuration.addAnnotatedClass(net.cryptic_game.server.user.User.class);
+        configuration.addAnnotatedClass(net.cryptic_game.server.user.Session.class);
+
+        return configuration;
+    }
+
+    public static Database getInstance() {
+        return instance;
+    }
 }

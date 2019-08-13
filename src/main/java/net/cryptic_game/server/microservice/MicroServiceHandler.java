@@ -64,7 +64,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                     return;
                 }
 
-                JSONObject data = json.get("data");
+                JSONObject data = json.get("data", JSONObject.class);
                 if (data == null) {
                     sendWebsocket(channel, MISSING_PARAMETERS);
                     return;

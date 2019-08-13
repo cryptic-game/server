@@ -2,28 +2,42 @@ package net.cryptic_game.server.user;
 
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
+import net.cryptic_game.server.database.Database;
+import org.hibernate.Criteria;
+import org.hibernate.annotations.Type;
+import org.hibernate.criterion.Restrictions;
 
-import java.sql.Date;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
-public class Session {
+@Entity
+@Table(name = "session")
+public class Session implements Serializable {
 
     private static int EXPIRE = Config.getInteger(DefaultConfig.SESSION_EXPIRE) * 1000;
 
+    @Id
+    @Type(type = "uuid-char")
     private UUID uuid;
+    @Id
+    @Type(type = "uuid-char")
     private UUID token;
-    private User user;
+    @Id
+    @Type(type = "uuid-char")
+    private UUID user;
     private boolean valid;
     private Date created;
 
     private Session(UUID uuid, UUID token, User user, Date created, boolean valid) {
         this.uuid = uuid;
         this.token = token;
-        this.user = user;
+        this.user = user.getUUID();
         this.valid = valid;
         this.created = created;
     }
@@ -37,7 +51,7 @@ public class Session {
     }
 
     public User getUser() {
-        return user;
+        return User.get(user);
     }
 
     public Date getCreated() {
@@ -50,11 +64,22 @@ public class Session {
 
     public void breakSession() {
         this.valid = false;
-        User.db.update("UPDATE `session` SET `valid`=? WHERE `uuid`=?", this.isValid(), this.getUUID().toString());
+        org.hibernate.Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.save(this);
+        session.getTransaction().commit();
+        session.close();
     }
 
     public void delete() {
-        User.db.update("DELETE FROM `session` WHERE `uuid`=?", this.getUUID().toString());
+        org.hibernate.Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.delete(this);
+
+        session.getTransaction().commit();
+        session.close();
     }
 
     public String toString() {
@@ -62,31 +87,33 @@ public class Session {
     }
 
     public static Session create(User user) {
-        Session session = new Session(UUID.randomUUID(), UUID.randomUUID(), user,
+        Session newSession = new Session(UUID.randomUUID(), UUID.randomUUID(), user,
                 new Date(Calendar.getInstance().getTime().getTime()), true);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        org.hibernate.Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-        User.db.update("INSERT INTO `session` (`uuid`, `token`, `user`, `created`, `valid`) VALUES (?, ?, ?, ?, ?)",
-                session.getUUID().toString(), session.getToken().toString(), session.getUser().getUUID().toString(),
-                sdf.format(session.getCreated()), session.isValid());
+        session.save(newSession);
 
-        return session;
+        session.getTransaction().commit();
+        session.close();
+
+        return newSession;
     }
 
     public static Session get(UUID token) {
-        ResultSet rs = User.db.getResult("SELECT * FROM `session` WHERE `token`=?", token.toString());
+        org.hibernate.Session session = Database.getInstance().openSession();
 
-        try {
-            if (rs.next()) {
-                return new Session(UUID.fromString(rs.getString("uuid")), UUID.fromString(rs.getString("token")),
-                        User.get(UUID.fromString(rs.getString("user"))), rs.getDate("created"), rs.getBoolean("valid"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        Criteria criteria = session.createCriteria(Session.class);
+        criteria.add(Restrictions.eq("token", token));
+        List<Session> results = criteria.list();
+
+        session.close();
+
+        if (results.size() == 0) {
+            return null;
         }
 
-        return null;
+        return results.get(0);
     }
-
 }

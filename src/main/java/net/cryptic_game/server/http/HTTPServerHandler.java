@@ -92,7 +92,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
 
         JSON json = new JSON(obj);
 
-        JSONObject data = json.get("data");
+        JSONObject data = json.get("data", JSONObject.class);
         if (data == null) {
             sendHTTP(channel, MISSING_PARAMETERS);
             return;
@@ -124,11 +124,7 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        JSONArray endpoint = new JSONArray();
-
-        endpoint.addAll(Arrays.asList(args).subList(1, args.length));
-
-        ms.receive(client, endpoint, data, tag);
+        ms.receive(client, (JSONArray) Arrays.asList(args).subList(1, args.length), data, tag);
     }
 
     @Override

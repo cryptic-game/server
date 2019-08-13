@@ -47,6 +47,10 @@ public class SocketSever {
         this(name, host, port, initializer, false);
     }
 
+    public int getPort() {
+        return port;
+    }
+
     public String getName() {
         return name;
     }

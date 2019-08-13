@@ -47,11 +47,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         JSON json = new JSON(obj);
 
         if (client.isValid() || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
-            MicroService microService = MicroService.get(json.<String>get("ms"));
-            if (microService == null) {
-                sendWebsocket(channel, UNKNOWN_MICROSERVICE);
-                return;
-            }
+            MicroService microService = MicroService.get(json.get("ms"));
 
             UUID tag;
             try {
@@ -61,10 +57,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 return;
             }
 
-            JSONObject data = json.get("data");
-            JSONArray endpoint = json.get("endpoint");
+            JSONObject data = json.get("data", JSONObject.class);
+            JSONArray endpoint = json.get("endpoint", JSONArray.class);
 
-            if (data == null || endpoint == null) {
+            if (data == null || endpoint == null || microService == null) {
                 String action = json.get("action");
 
                 if (action == null) {

@@ -1,54 +1,34 @@
 package net.cryptic_game.server.user;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
-import at.favre.lib.crypto.bcrypt.BCrypt.Result;
-import net.cryptic_game.server.config.Config;
-import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
-import net.cryptic_game.server.database.MySQLDatabase;
-import net.cryptic_game.server.database.SQLiteDatabase;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.annotations.Type;
+import org.hibernate.criterion.Restrictions;
 
-import java.sql.Date;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+@Entity
+@Table(name = "user")
 public class User {
 
-    static Database db = null;
-
-    static {
-        if (Config.getBoolean(DefaultConfig.PRODUCTIVE)) {
-		    db = new MySQLDatabase();
-		} else {
-		    db = new SQLiteDatabase("user.db");
-		}
-        
-        db.update("CREATE TABLE IF NOT EXISTS `user` (" +
-                "uuid VARCHAR(36) PRIMARY KEY, " +
-                "name TEXT, mail TEXT, " +
-                "password TEXT, " +
-                "created DATETIME, " +
-                "last DATETIME" +
-                ");");
-        db.update("CREATE TABLE IF NOT EXISTS `session` (" +
-                "uuid VARCHAR(36), " +
-                "token VARCHAR(36), " +
-                "user VARCHAR(36), " +
-                "valid BOOLEAN, " +
-                "created DATETIME, " +
-                "PRIMARY KEY(uuid, token, user), " +
-                "FOREIGN KEY (user) REFERENCES user(uuid)" +
-                ");");
-    }
-
+    @Id
+    @Type(type = "uuid-char")
     private UUID uuid;
+    @Type(type = "text")
     private String name;
+    @Type(type = "text")
     private String mail;
+    @Type(type = "text")
     private String password;
     private Date created;
     private Date last;
@@ -83,18 +63,22 @@ public class User {
     }
 
     public boolean checkPassword(String password) {
-        Result result = BCrypt.verifyer().verify(password.toCharArray(), this.password);
+        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), password);
 
         return result.verified;
     }
 
     public boolean changePassword(String oldPassword, String newPassword) {
-        if (this.checkPassword(oldPassword) && isValidPassword(newPassword)) {
-            String hash = hashPassword(newPassword);
+        if (isValidPassword(newPassword) && checkPassword(oldPassword)) {
+            this.password = hashPassword(newPassword);
 
-            db.update("UPDATE `user` SET `password`=? WHERE `uuid`=?", hash, this.getUUID().toString());
+            Session session = Database.getInstance().openSession();
+            session.beginTransaction();
 
-            this.password = hash;
+            session.update(this);
+
+            session.getTransaction().commit();
+            session.close();
 
             return true;
         }
@@ -102,7 +86,13 @@ public class User {
     }
 
     public void delete() {
-        db.update("DELETE FROM `user` WHERE `uuid`=?", this.getUUID().toString());
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.delete(this);
+
+        session.getTransaction().commit();
+        session.close();
     }
 
     public String toString() {
@@ -110,56 +100,62 @@ public class User {
     }
 
     public void updateLast() {
-        Date now = new Date(Calendar.getInstance().getTime().getTime());
+        this.last = new Date(Calendar.getInstance().getTime().getTime());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
 
-        db.update("UPDATE `user` SET `last`=? WHERE `uuid`=?", sdf.format(now), this.getUUID().toString());
+        session.update(this);
+        session.getTransaction().commit();
+
+        session.close();
     }
 
     public static User get(UUID uuid) {
-        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `uuid`=?", uuid.toString());
-        return getFromDBResult(rs);
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        User user = session.get(User.class, uuid);
+
+        session.getTransaction().commit();
+        session.close();
+
+        return user;
     }
 
     public static User get(String name) {
-        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `name`=?", name);
-        return getFromDBResult(rs);
-    }
+        Session session = Database.getInstance().openSession();
 
-    private static User getFromDBResult(ResultSet rs) {
-        try {
-            if (rs.next()) {
-                return new User(UUID.fromString(rs.getString("uuid")), rs.getString("name"), rs.getString("mail"),
-                        rs.getString("password"), rs.getDate("created"), rs.getDate("last"));
-            }
-        } catch (SQLException e) {
-            new RuntimeException("Unexpected error: missing column", e).printStackTrace();
+        Criteria criteria = session.createCriteria(User.class);
+        criteria.add(Restrictions.eq("name", name));
+        List<User> results = criteria.list();
+
+        session.close();
+
+        if (results.size() == 0) {
+            return null;
         }
 
-        return null;
+        return results.get(0);
     }
 
     public static User create(String name, String mail, String password) {
-        ResultSet rs = db.getResult("SELECT * FROM `user` WHERE `name`=?", name);
+        if (isValidMailAddress(mail) && isValidPassword(password) && get(name) == null) {
+            UUID uuid = UUID.randomUUID();
 
-        try {
-            if (isValidPassword(password) && isValidMailAddress(mail) && !rs.next()) {
-                UUID uuid = UUID.randomUUID();
+            Date now = new Date(Calendar.getInstance().getTime().getTime());
+            String hash = hashPassword(password);
+            User user = new User(uuid, name, mail, hash, now, now);
 
-                Date now = new Date(Calendar.getInstance().getTime().getTime());
+            Session session = Database.getInstance().openSession();
+            session.beginTransaction();
 
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            session.save(user);
 
-                User user = new User(uuid, name, mail, password, now, now);
+            session.getTransaction().commit();
+            session.close();
 
-                db.update("INSERT INTO `user` (`uuid`, `name`, `mail`, `password`, `created`, `last`) VALUES (?, ?, ?, ?, ?, ?)",
-                        uuid.toString(), name, mail, User.hashPassword(password), sdf.format(now), sdf.format(now));
-
-                return user;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            return user;
         }
 
         return null;
@@ -176,5 +172,4 @@ public class User {
     private static String hashPassword(String toHash) {
         return BCrypt.withDefaults().hashToString(12, toHash.toCharArray());
     }
-
 }
