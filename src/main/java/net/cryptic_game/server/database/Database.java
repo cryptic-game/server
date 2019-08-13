@@ -48,12 +48,12 @@ public class Database {
 
         settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
         settings.put(Environment.URL, "jdbc:mysql://" + Config.get(DefaultConfig.MYSQL_HOSTNAME) + ":" + Config.get(DefaultConfig.MYSQL_PORT)
-                        + "/" + Config.get(DefaultConfig.MYSQL_DATABASE) + "?serverTimezone=" + Calendar.getInstance().getTimeZone().getID());
+                + "/" + Config.get(DefaultConfig.MYSQL_DATABASE) + "?serverTimezone=" + Calendar.getInstance().getTimeZone().getID());
         settings.put(Environment.USER, Config.get(DefaultConfig.MYSQL_USERNAME));
         settings.put(Environment.PASS, Config.get(DefaultConfig.MYSQL_PASSWORD));
-        settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
+        settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQL5Dialect");
         settings.put(Environment.SHOW_SQL, "true");
-        settings.put(Environment.HBM2DDL_AUTO, "validate");
+        settings.put(Environment.HBM2DDL_AUTO, "update");
 
         configuration.setProperties(settings);
 
@@ -66,4 +66,5 @@ public class Database {
     public static Database getInstance() {
         return instance;
     }
+
 }
