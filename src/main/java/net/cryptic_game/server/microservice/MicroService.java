@@ -95,7 +95,7 @@ public class MicroService {
     boolean send(JSONObject output) {
         JSON json = new JSON(output);
 
-        JSONObject data = json.get("data");
+        JSONObject data = json.get("data", JSONObject.class);
         if (data == null) {
             return false;
         }
@@ -107,8 +107,8 @@ public class MicroService {
             return false;
         }
 
-        MicroService microService = MicroService.get(json.<String>get("ms"));
-        JSONArray endpoint = json.get("endpoint");
+        MicroService microService = MicroService.get(json.get("ms"));
+        JSONArray endpoint = json.get("endpoint", JSONArray.class);
         if (microService == null || endpoint == null) {
             Request req = open.get(tag);
             if (req != null) {

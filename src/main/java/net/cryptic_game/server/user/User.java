@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class User {
 
     @Id
-    @Type(type="uuid-char")
+    @Type(type = "uuid-char")
     private UUID uuid;
     @Type(type = "text")
     private String name;
@@ -40,10 +40,6 @@ public class User {
         this.password = password;
         this.created = created;
         this.last = last;
-    }
-
-    public User() {
-
     }
 
     public UUID getUUID() {
@@ -67,13 +63,13 @@ public class User {
     }
 
     public boolean checkPassword(String password) {
-        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), this.password);
+        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), password);
 
         return result.verified;
     }
 
     public boolean changePassword(String oldPassword, String newPassword) {
-        if (this.checkPassword(oldPassword) && isValidPassword(newPassword)) {
+        if (isValidPassword(newPassword) && checkPassword(oldPassword)) {
             this.password = hashPassword(newPassword);
 
             Session session = Database.getInstance().openSession();
@@ -130,25 +126,21 @@ public class User {
     public static User get(String name) {
         Session session = Database.getInstance().openSession();
 
-        Criteria crit = session.createCriteria(User.class);
-        crit.add(Restrictions.eq("name", name));
-        List<User> results = crit.list();
-
-        if(results.size() == 0) {
-            session.close();
-            return null;
-        }
-
-        User user = results.get(0);
+        Criteria criteria = session.createCriteria(User.class);
+        criteria.add(Restrictions.eq("name", name));
+        List<User> results = criteria.list();
 
         session.close();
 
-        return user;
+        if (results.size() == 0) {
+            return null;
+        }
+
+        return results.get(0);
     }
 
     public static User create(String name, String mail, String password) {
-
-        if((get(name) == null) && isValidMailAddress(mail) && isValidPassword(password)) {
+        if (isValidMailAddress(mail) && isValidPassword(password) && get(name) == null) {
             UUID uuid = UUID.randomUUID();
 
             Date now = new Date(Calendar.getInstance().getTime().getTime());

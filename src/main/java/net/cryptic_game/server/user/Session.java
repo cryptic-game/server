@@ -23,13 +23,13 @@ public class Session implements Serializable {
     private static int EXPIRE = Config.getInteger(DefaultConfig.SESSION_EXPIRE) * 1000;
 
     @Id
-    @Type(type="uuid-char")
+    @Type(type = "uuid-char")
     private UUID uuid;
     @Id
-    @Type(type="uuid-char")
+    @Type(type = "uuid-char")
     private UUID token;
     @Id
-    @Type(type="uuid-char")
+    @Type(type = "uuid-char")
     private UUID user;
     private boolean valid;
     private Date created;
@@ -40,10 +40,6 @@ public class Session implements Serializable {
         this.user = user.getUUID();
         this.valid = valid;
         this.created = created;
-    }
-
-    public Session() {
-
     }
 
     public UUID getUUID() {
@@ -108,16 +104,15 @@ public class Session implements Serializable {
     public static Session get(UUID token) {
         org.hibernate.Session session = Database.getInstance().openSession();
 
-        Criteria crit = session.createCriteria(Session.class);
-        crit.add(Restrictions.eq("token", token));
-        List<Session> results = crit.list();
-
-        if(results.size() == 0) {
-            session.close();
-            return null;
-        }
+        Criteria criteria = session.createCriteria(Session.class);
+        criteria.add(Restrictions.eq("token", token));
+        List<Session> results = criteria.list();
 
         session.close();
+
+        if (results.size() == 0) {
+            return null;
+        }
 
         return results.get(0);
     }
