@@ -48,21 +48,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
         if (client.isValid() || !Config.getBoolean(DefaultConfig.AUTH_ENABLED)) {
             MicroService microService = MicroService.get(json.get("ms"));
-
-            UUID tag;
-            try {
-                tag = UUID.fromString(json.get("tag"));
-            } catch (IllegalArgumentException | NullPointerException ex) {
-                sendWebsocket(channel, MISSING_ACTION);
-                return;
-            }
-
+            UUID tag = json.getUUID("tag");
             JSONObject data = json.get("data", JSONObject.class);
             JSONArray endpoint = json.get("endpoint", JSONArray.class);
 
-            if (data == null || endpoint == null || microService == null) {
+            if (data == null || endpoint == null || microService == null || tag == null) {
                 String action = json.get("action");
-
                 if (action == null) {
                     sendWebsocket(channel, MISSING_ACTION);
                     return;
@@ -91,9 +82,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         break;
                     }
                 }
-            } else {
-                microService.receive(client, endpoint, data, tag);
+
+                return;
             }
+
+            microService.receive(client, endpoint, data, tag);
+
             return;
         }
 
