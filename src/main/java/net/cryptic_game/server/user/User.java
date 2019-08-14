@@ -42,6 +42,9 @@ public class User {
         this.last = last;
     }
 
+    public User() {
+    }
+
     public UUID getUUID() {
         return uuid;
     }

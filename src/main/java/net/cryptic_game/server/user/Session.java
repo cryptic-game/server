@@ -42,6 +42,9 @@ public class Session implements Serializable {
         this.created = created;
     }
 
+    public Session() {
+    }
+
     public UUID getUUID() {
         return uuid;
     }
