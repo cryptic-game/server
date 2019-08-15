@@ -3,7 +3,9 @@ package net.cryptic_game.server.microservice;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import net.cryptic_game.server.user.User;
 import net.cryptic_game.server.utils.JSON;
+import net.cryptic_game.server.utils.JSONBuilder;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -11,6 +13,7 @@ import org.json.simple.parser.ParseException;
 import java.util.UUID;
 
 import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
@@ -71,6 +74,36 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 }
 
                 MicroService.sendToUser(user, data);
+
+                break;
+            }
+            case "user": {
+                UUID tag = json.getUUID("tag");
+                JSONObject dataJSONObject = json.get("data", JSONObject.class);
+                JSON data = new JSON(dataJSONObject);
+
+                if(tag == null || dataJSONObject == null || data.get("user") == null) {
+                    sendWebsocket(channel, MISSING_PARAMETERS);
+                    return;
+                }
+
+                User user = User.get(data.getUUID("user"));
+
+                JSONBuilder result = JSONBuilder.anJSON()
+                        .add("tag", tag.toString())
+                        .add("valid", user != null);
+
+                if (user != null)  {
+                    JSONObject resultData = JSONBuilder.anJSON()
+                            .add("uuid", user.getUUID().toString())
+                            .add("name", user.getName())
+                            .add("mail", user.getMail())
+                            .add("created", user.getCreated().getTime())
+                            .add("last", user.getLast().getTime()).build();
+                    result.add("data", resultData);
+                }
+
+                sendRaw(channel, result.build());
 
                 break;
             }
