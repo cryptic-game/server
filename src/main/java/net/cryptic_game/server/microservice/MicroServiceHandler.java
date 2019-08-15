@@ -14,7 +14,6 @@ import java.util.UUID;
 
 import static net.cryptic_game.server.error.ServerError.*;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
-import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
@@ -26,7 +25,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
         try {
             obj = (JSONObject) new JSONParser().parse(msg);
         } catch (ParseException ignored) {
-            sendWebsocket(channel, UNSUPPORTED_FORMAT);
+            sendRaw(channel, UNSUPPORTED_FORMAT);
             return;
         }
 
@@ -41,7 +40,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
         String action = json.get("action");
 
         if (action == null) {
-            sendWebsocket(channel, MISSING_ACTION);
+            sendRaw(channel, MISSING_ACTION);
             return;
         }
 
@@ -50,7 +49,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 String name = json.get("name");
 
                 if (name == null) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
+                    sendRaw(channel, MISSING_PARAMETERS);
                     return;
                 }
 
@@ -63,13 +62,13 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 try {
                     user = UUID.fromString(json.get("user"));
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
+                    sendRaw(channel, MISSING_PARAMETERS);
                     return;
                 }
 
                 JSONObject data = json.get("data", JSONObject.class);
                 if (data == null) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
+                    sendRaw(channel, MISSING_PARAMETERS);
                     return;
                 }
 
@@ -82,8 +81,8 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 JSONObject dataJSONObject = json.get("data", JSONObject.class);
                 JSON data = new JSON(dataJSONObject);
 
-                if(tag == null || dataJSONObject == null || data.get("user") == null) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
+                if (tag == null || dataJSONObject == null || data.get("user") == null) {
+                    sendRaw(channel, MISSING_PARAMETERS);
                     return;
                 }
 
@@ -93,7 +92,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                         .add("tag", tag.toString())
                         .add("valid", user != null);
 
-                if (user != null)  {
+                if (user != null) {
                     JSONObject resultData = JSONBuilder.anJSON()
                             .add("uuid", user.getUUID().toString())
                             .add("name", user.getName())
@@ -108,7 +107,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 break;
             }
             default: {
-                sendWebsocket(channel, UNKNOWN_ACTION);
+                sendRaw(channel, UNKNOWN_ACTION);
 
                 break;
             }
