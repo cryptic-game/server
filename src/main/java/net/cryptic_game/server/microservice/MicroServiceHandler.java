@@ -3,7 +3,9 @@ package net.cryptic_game.server.microservice;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import net.cryptic_game.server.user.User;
 import net.cryptic_game.server.utils.JSON;
+import net.cryptic_game.server.utils.JSONBuilder;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -11,7 +13,7 @@ import org.json.simple.parser.ParseException;
 import java.util.UUID;
 
 import static net.cryptic_game.server.error.ServerError.*;
-import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
+import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
@@ -23,7 +25,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
         try {
             obj = (JSONObject) new JSONParser().parse(msg);
         } catch (ParseException ignored) {
-            sendWebsocket(channel, UNSUPPORTED_FORMAT);
+            sendRaw(channel, UNSUPPORTED_FORMAT);
             return;
         }
 
@@ -38,7 +40,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
         String action = json.get("action");
 
         if (action == null) {
-            sendWebsocket(channel, MISSING_ACTION);
+            sendRaw(channel, MISSING_ACTION);
             return;
         }
 
@@ -47,7 +49,7 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 String name = json.get("name");
 
                 if (name == null) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
+                    sendRaw(channel, MISSING_PARAMETERS);
                     return;
                 }
 
@@ -60,13 +62,13 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 try {
                     user = UUID.fromString(json.get("user"));
                 } catch (IllegalArgumentException | NullPointerException e) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
+                    sendRaw(channel, MISSING_PARAMETERS);
                     return;
                 }
 
                 JSONObject data = json.get("data", JSONObject.class);
                 if (data == null) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
+                    sendRaw(channel, MISSING_PARAMETERS);
                     return;
                 }
 
@@ -74,8 +76,38 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
                 break;
             }
+            case "user": {
+                UUID tag = json.getUUID("tag");
+                JSONObject dataJSONObject = json.get("data", JSONObject.class);
+                JSON data = new JSON(dataJSONObject);
+
+                if (tag == null || dataJSONObject == null || data.get("user") == null) {
+                    sendRaw(channel, MISSING_PARAMETERS);
+                    return;
+                }
+
+                User user = User.get(data.getUUID("user"));
+
+                JSONBuilder result = JSONBuilder.anJSON()
+                        .add("tag", tag.toString())
+                        .add("valid", user != null);
+
+                if (user != null) {
+                    JSONObject resultData = JSONBuilder.anJSON()
+                            .add("uuid", user.getUUID().toString())
+                            .add("name", user.getName())
+                            .add("mail", user.getMail())
+                            .add("created", user.getCreated().getTime())
+                            .add("last", user.getLast().getTime()).build();
+                    result.add("data", resultData);
+                }
+
+                sendRaw(channel, result.build());
+
+                break;
+            }
             default: {
-                sendWebsocket(channel, UNKNOWN_ACTION);
+                sendRaw(channel, UNKNOWN_ACTION);
 
                 break;
             }
