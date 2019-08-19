@@ -3,17 +3,15 @@ package net.cryptic_game.server.user;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
-import org.hibernate.Criteria;
 import org.hibernate.annotations.Type;
-import org.hibernate.criterion.Restrictions;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -107,16 +105,24 @@ public class Session implements Serializable {
     public static Session get(UUID token) {
         org.hibernate.Session session = Database.getInstance().openSession();
 
-        Criteria criteria = session.createCriteria(Session.class);
-        criteria.add(Restrictions.eq("token", token));
-        List<Session> results = criteria.list();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Session> criteria = builder.createQuery(Session.class);
+        Root<Session> from = criteria.from(Session.class);
 
-        session.close();
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("token"), token));
+        TypedQuery<Session> typed = session.createQuery(criteria);
 
-        if (results.size() == 0) {
+        Session s;
+
+        try {
+            s = typed.getSingleResult();
+        } catch (NoResultException e) {
             return null;
+        } finally {
+            session.close();
         }
 
-        return results.get(0);
+        return s;
     }
 }

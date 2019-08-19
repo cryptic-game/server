@@ -3,17 +3,15 @@ package net.cryptic_game.server.user;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import net.cryptic_game.server.database.Database;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
-import org.hibernate.criterion.Restrictions;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -129,17 +127,25 @@ public class User {
     public static User get(String name) {
         Session session = Database.getInstance().openSession();
 
-        Criteria criteria = session.createCriteria(User.class);
-        criteria.add(Restrictions.eq("name", name));
-        List<User> results = criteria.list();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<User> criteria = builder.createQuery(User.class);
+        Root<User> from = criteria.from(User.class);
 
-        session.close();
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("name"), name));
+        TypedQuery<User> typed = session.createQuery(criteria);
 
-        if (results.size() == 0) {
+        User user;
+
+        try {
+            user = typed.getSingleResult();
+        } catch (NoResultException e) {
             return null;
+        } finally {
+            session.close();
         }
 
-        return results.get(0);
+        return user;
     }
 
     public static User create(String name, String mail, String password) {
