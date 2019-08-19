@@ -133,20 +133,18 @@ public class User {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("name"), name));
-
         TypedQuery<User> typed = session.createQuery(criteria);
 
         User user;
 
         try {
             user = typed.getSingleResult();
-
         } catch (NoResultException e) {
-            session.close();
             return null;
+        } finally {
+            session.close();
         }
 
-        session.close();
         return user;
     }
 

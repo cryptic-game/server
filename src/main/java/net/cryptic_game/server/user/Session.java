@@ -111,20 +111,18 @@ public class Session implements Serializable {
 
         criteria.select(from);
         criteria.where(builder.equal(from.get("token"), token));
-
         TypedQuery<Session> typed = session.createQuery(criteria);
 
         Session s;
 
         try {
             s = typed.getSingleResult();
-
         } catch (NoResultException e) {
-            session.close();
             return null;
+        } finally {
+            session.close();
         }
 
-        session.close();
         return s;
     }
 }
