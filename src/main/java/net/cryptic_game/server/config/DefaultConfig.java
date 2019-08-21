@@ -3,12 +3,6 @@ package net.cryptic_game.server.config;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * default variables instead of env variables
- *
- * @author use-to
- */
-
 public enum DefaultConfig {
 
     WEBSOCKET_HOST("0.0.0.0"),

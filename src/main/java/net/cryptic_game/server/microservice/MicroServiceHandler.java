@@ -3,74 +3,115 @@ package net.cryptic_game.server.microservice;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import net.cryptic_game.server.socket.SocketServerUtils;
+import net.cryptic_game.server.user.User;
+import net.cryptic_game.server.utils.JSON;
+import net.cryptic_game.server.utils.JSONBuilder;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
+
+import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) {
-        JSONObject obj;
+        Channel channel = ctx.channel();
 
+        JSONObject obj;
         try {
             obj = (JSONObject) new JSONParser().parse(msg);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            this.error(ctx.channel(), "unsupported format");
+        } catch (ParseException ignored) {
+            sendRaw(channel, UNSUPPORTED_FORMAT);
             return;
         }
 
-        MicroService ms = MicroService.get(ctx.channel());
+        JSON json = new JSON(obj);
 
-        if (ms == null || !ms.send(obj)) {
-            if (!obj.containsKey("action") || !(obj.get("action") instanceof String)) {
-                this.error(ctx.channel(), "missing action");
-                return;
+        MicroService ms = MicroService.get(channel);
+
+        if (ms != null && ms.send(obj)) {
+            return;
+        }
+
+        String action = json.get("action");
+
+        if (action == null) {
+            sendRaw(channel, MISSING_ACTION);
+            return;
+        }
+
+        switch (action) {
+            case "register": {
+                String name = json.get("name");
+
+                if (name == null) {
+                    sendRaw(channel, MISSING_PARAMETERS);
+                    return;
+                }
+
+                MicroService.register(name, channel);
+
+                break;
             }
+            case "address": {
+                UUID user;
+                try {
+                    user = UUID.fromString(json.get("user"));
+                } catch (IllegalArgumentException | NullPointerException e) {
+                    sendRaw(channel, MISSING_PARAMETERS);
+                    return;
+                }
 
-            String action = (String) obj.get("action");
+                JSONObject data = json.get("data", JSONObject.class);
+                if (data == null) {
+                    sendRaw(channel, MISSING_PARAMETERS);
+                    return;
+                }
 
-            switch (action) {
-                case "register":
-                    if (obj.containsKey("name") && obj.get("name") instanceof String) {
-                        MicroService.register((String) obj.get("name"), ctx.channel());
-                    } else {
-                        this.error(ctx.channel(), "missing parameter");
-                    }
-                    break;
-                case "address":
-                    if (obj.containsKey("user") && obj.get("user") instanceof String && obj.containsKey("data")
-                            && obj.get("data") instanceof JSONObject) {
-                        MicroService.sendToUser(UUID.fromString((String) obj.get("user")), (JSONObject) obj.get("data"));
-                    } else {
-                        this.error(ctx.channel(), "missing parameter");
-                    }
-                    break;
-                default:
-                    this.error(ctx.channel(), "unknown action");
-                    break;
+                MicroService.sendToUser(user, data);
+
+                break;
+            }
+            case "user": {
+                UUID tag = json.getUUID("tag");
+                JSONObject dataJSONObject = json.get("data", JSONObject.class);
+                JSON data = new JSON(dataJSONObject);
+
+                if (tag == null || dataJSONObject == null || data.get("user") == null) {
+                    sendRaw(channel, MISSING_PARAMETERS);
+                    return;
+                }
+
+                User user = User.get(data.getUUID("user"));
+
+                JSONBuilder result = JSONBuilder.anJSON()
+                        .add("tag", tag.toString())
+                        .add("valid", user != null);
+
+                if (user != null) {
+                    JSONObject resultData = JSONBuilder.anJSON()
+                            .add("uuid", user.getUUID().toString())
+                            .add("name", user.getName())
+                            .add("mail", user.getMail())
+                            .add("created", user.getCreated().getTime())
+                            .add("last", user.getLast().getTime()).build();
+                    result.add("data", resultData);
+                }
+
+                sendRaw(channel, result.build());
+
+                break;
+            }
+            default: {
+                sendRaw(channel, UNKNOWN_ACTION);
+
+                break;
             }
         }
-    }
-
-    /**
-     * Sends an error to a microservice
-     *
-     * @param channel channel of receiver
-     * @param error   the error message
-     */
-    private void error(Channel channel, String error) {
-        Map<String, String> jsonMap = new HashMap<>();
-
-        jsonMap.put("error", error);
-
-        SocketServerUtils.sendJson(channel, new JSONObject(jsonMap));
     }
 
     @Override

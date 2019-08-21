@@ -47,12 +47,12 @@ public class SocketSever {
         this(name, host, port, initializer, false);
     }
 
-    public String getName() {
-        return name;
-    }
-
     public int getPort() {
         return port;
+    }
+
+    public String getName() {
+        return name;
     }
 
 }

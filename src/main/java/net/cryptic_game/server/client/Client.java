@@ -1,12 +1,14 @@
 package net.cryptic_game.server.client;
 
 import io.netty.channel.Channel;
-import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.User;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static net.cryptic_game.server.socket.SocketServerUtils.sendHTTP;
+import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 
 public class Client {
 
@@ -19,7 +21,6 @@ public class Client {
     private Client(User user, Channel channel, ClientType type) {
         this.user = user;
         this.channel = channel;
-
         this.type = type;
     }
 
@@ -37,24 +38,20 @@ public class Client {
 
     public void setUser(User user) {
         this.user = user;
-        if (this.user != null) {
-            this.user.updateLast();
+        if (user != null) {
+            user.updateLast();
         }
     }
 
     public boolean isValid() {
-        return this.getUser() != null;
-    }
-
-    public ClientType getType() {
-        return type;
+        return getUser() != null;
     }
 
     public void send(JSONObject data) {
-        if (this.getType().equals(ClientType.HTTP)) {
-            SocketServerUtils.sendJsonToHTTPClient(this.getChannel(), data);
-        } else if (this.getType().equals(ClientType.WEBSOCKET)) {
-            SocketServerUtils.sendJsonToClient(this.getChannel(), data);
+        if (type.equals(ClientType.HTTP)) {
+            sendHTTP(channel, data);
+        } else if (type.equals(ClientType.WEBSOCKET)) {
+            sendWebsocket(channel, data);
         }
     }
 
@@ -78,7 +75,7 @@ public class Client {
         return null;
     }
 
-    public static boolean existsClient(Channel channel) {
+    private static boolean existsClient(Channel channel) {
         return getClient(channel) != null;
     }
 

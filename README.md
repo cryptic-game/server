@@ -11,7 +11,7 @@ Build the game-server by using `mvn clean install` .
 
 ### Execute
 
-Run it with `java -jar target/server-0.0.9-jar-with-dependencies.jar` .
+Run it with `java -jar target/server-0.1.0-jar-with-dependencies.jar` .
 
 ### Environment variables
 
