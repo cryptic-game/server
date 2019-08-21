@@ -69,6 +69,7 @@ public class Session implements Serializable {
         session.beginTransaction();
 
         session.update(this);
+        
         session.getTransaction().commit();
         session.close();
     }
