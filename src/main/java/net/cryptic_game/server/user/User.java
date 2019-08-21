@@ -107,8 +107,8 @@ public class User {
         session.beginTransaction();
 
         session.update(this);
-        session.getTransaction().commit();
 
+        session.getTransaction().commit();
         session.close();
     }
 

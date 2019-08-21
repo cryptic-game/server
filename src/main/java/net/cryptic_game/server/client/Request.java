@@ -9,13 +9,13 @@ public class Request {
 
     private Client client;
     private UUID tag;
-    private String microservice;
+    private String microService;
     private JSONObject data;
 
-    public Request(Client client, UUID tag, String microservice, JSONObject data) {
+    public Request(Client client, UUID tag, String microService, JSONObject data) {
         this.client = client;
         this.tag = tag;
-        this.microservice = microservice;
+        this.microService = microService;
         this.data = data;
     }
 
@@ -23,8 +23,8 @@ public class Request {
         return data;
     }
 
-    public String getMicroservice() {
-        return microservice;
+    public String getMicroService() {
+        return microService;
     }
 
     public void send(JSONObject data) {

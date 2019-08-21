@@ -149,7 +149,7 @@ public class MicroService {
         logger.info("microservice registered: " + name);
 
         for (Request r : open.values()) {
-            if (r.getMicroservice().equals(name)) {
+            if (r.getMicroService().equals(name)) {
                 sendRaw(channel, r.getData());
                 return;
             }

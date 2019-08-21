@@ -68,7 +68,7 @@ public class Session implements Serializable {
         org.hibernate.Session session = Database.getInstance().openSession();
         session.beginTransaction();
 
-        session.save(this);
+        session.update(this);
         session.getTransaction().commit();
         session.close();
     }
