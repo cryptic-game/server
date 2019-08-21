@@ -11,4 +11,4 @@ A clear and concise description of what you want to happen.
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
 **Additional context**
-Add any other context or screenshots about the feature request here.
+Add any other context about the feature request here.
