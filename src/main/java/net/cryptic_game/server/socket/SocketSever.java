@@ -10,6 +10,7 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.sentry.Sentry;
 import org.apache.log4j.Logger;
 
 import java.net.InetSocketAddress;
@@ -40,6 +41,8 @@ public class SocketSever {
             }
         } catch (Exception e) {
             logger.error("Cannot bind port to " + port);
+
+            Sentry.capture(e);
         }
     }
 

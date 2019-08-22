@@ -1,12 +1,12 @@
 package net.cryptic_game.server.http;
 
-import org.apache.log4j.Logger;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.sentry.Sentry;
+import org.apache.log4j.Logger;
 
 public class HTTPServer {
 
@@ -30,7 +30,8 @@ public class HTTPServer {
                     .option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
             bootstrap.bind(this.port).sync();
             logger.info("http booted on port " + port);
-        } catch (final InterruptedException ignored) {
+        } catch (final InterruptedException e) {
+            Sentry.capture(e);
         }
     }
 

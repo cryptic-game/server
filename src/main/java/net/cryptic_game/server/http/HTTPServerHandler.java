@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.base64.Base64;
 import io.netty.handler.codec.http.*;
+import io.sentry.Sentry;
 import net.cryptic_game.server.client.Client;
 import net.cryptic_game.server.client.ClientType;
 import net.cryptic_game.server.config.Config;
@@ -131,6 +132,8 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
                 copiedBuffer(cause.getMessage().getBytes())));
+
+        Sentry.capture(cause);
     }
 
     @Override
