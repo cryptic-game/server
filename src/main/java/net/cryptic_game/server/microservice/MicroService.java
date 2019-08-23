@@ -73,6 +73,10 @@ public class MicroService {
         sendRaw(getChannel(), json);
         open.put(tag, new Request(client, clientTag, getName(), json));
 
+        if (!Config.getBoolean(DefaultConfig.PRODUCTIVE)) {
+            logger.info(getName() + " < " + json.toString());
+        }
+
         new Thread(() -> {
             try {
                 Thread.sleep(1000 * Config.getInteger(DefaultConfig.RESPONSE_TIMEOUT));
@@ -114,6 +118,10 @@ public class MicroService {
             if (req != null) {
                 req.send(data);
                 open.remove(tag);
+
+                if (!Config.getBoolean(DefaultConfig.PRODUCTIVE)) {
+                    logger.info(getName() + " > " + data.toString());
+                }
             }
 
             return true;
