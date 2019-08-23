@@ -18,7 +18,9 @@ public class App {
         Logger.getRootLogger().setLevel(Level.toLevel(Config.get(DefaultConfig.LOG_LEVEL)));
         BasicConfigurator.configure();
 
-        Sentry.init(Config.get(DefaultConfig.SENTRY_DSN));
+        if(!Config.get(DefaultConfig.SENTRY_DSN).equals("")) {
+            Sentry.init(Config.get(DefaultConfig.SENTRY_DSN));
+        }
 
         new Database();
 

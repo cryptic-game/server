@@ -21,7 +21,7 @@ public enum DefaultConfig {
     SESSION_EXPIRE(60 * 60 * 24 * 2), // 2 days
     RESPONSE_TIMEOUT(20), // 20 seconds
     LOG_LEVEL("INFO"),
-    SENTRY_DSN("https://public:private@host:port/1");
+    SENTRY_DSN("");
 
     private Object value;
 

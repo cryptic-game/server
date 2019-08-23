@@ -30,8 +30,7 @@ public class HTTPServer {
                     .option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
             bootstrap.bind(this.port).sync();
             logger.info("http booted on port " + port);
-        } catch (final InterruptedException e) {
-            Sentry.capture(e);
+        } catch (final InterruptedException ignored) {
         }
     }
 

@@ -41,8 +41,6 @@ public class SocketSever {
             }
         } catch (Exception e) {
             logger.error("Cannot bind port to " + port);
-
-            Sentry.capture(e);
         }
     }
 
