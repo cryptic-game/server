@@ -33,11 +33,11 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
         MicroService ms = MicroService.get(channel);
 
-        if (ms != null && ms.send(obj)) {
+        String action = json.get("action");
+
+        if (ms != null && ms.send(obj) && action == null) {
             return;
         }
-
-        String action = json.get("action");
 
         if (action == null) {
             sendRaw(channel, MISSING_ACTION);
@@ -89,18 +89,19 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 User user = User.get(data.getUUID("user"));
 
                 JSONBuilder result = JSONBuilder.anJSON()
-                        .add("tag", tag.toString())
+                        .add("tag", tag.toString());
+
+                JSONBuilder resultData = JSONBuilder.anJSON()
                         .add("valid", user != null);
 
                 if (user != null) {
-                    JSONObject resultData = JSONBuilder.anJSON()
-                            .add("uuid", user.getUUID().toString())
+                    resultData.add("uuid", user.getUUID().toString())
                             .add("name", user.getName())
                             .add("mail", user.getMail())
                             .add("created", user.getCreated().getTime())
                             .add("last", user.getLast().getTime()).build();
-                    result.add("data", resultData);
                 }
+                result.add("data", resultData.build());
 
                 sendRaw(channel, result.build());
 
