@@ -1,5 +1,6 @@
 package net.cryptic_game.server;
 
+import io.sentry.Sentry;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
@@ -16,6 +17,10 @@ public class App {
     public static void main(String[] args) {
         Logger.getRootLogger().setLevel(Level.toLevel(Config.get(DefaultConfig.LOG_LEVEL)));
         BasicConfigurator.configure();
+
+        if(!Config.get(DefaultConfig.SENTRY_DSN).equals("")) {
+            Sentry.init(Config.get(DefaultConfig.SENTRY_DSN));
+        }
 
         new Database();
 

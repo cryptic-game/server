@@ -21,16 +21,12 @@ public class Database {
     public Database() {
         instance = this;
 
-        try {
-            Configuration cfg = getConfiguration();
-            ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
-                    .applySettings(cfg.getProperties()).build();
+        Configuration cfg = getConfiguration();
+        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                .applySettings(cfg.getProperties()).build();
 
-            sessionFactory = cfg.buildSessionFactory(serviceRegistry);
+        sessionFactory = cfg.buildSessionFactory(serviceRegistry);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public SessionFactory getSessionFactory() {
