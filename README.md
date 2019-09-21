@@ -1,4 +1,4 @@
-# game-server
+# game-server [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cryptic-game_server&metric=coverage)](https://sonarcloud.io/dashboard?id=cryptic-game_server)
 
 The official game-server of cryptic-game.  
 This system connects the microservices with clients via json-based sockets.
