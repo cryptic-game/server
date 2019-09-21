@@ -19,7 +19,7 @@ import static org.mockito.Mockito.times;
 @ExtendWith(MockitoExtension.class)
 class JSONBuilderTest {
 
-    @Mock
+    /*@Mock
     Map<String, Object> jsonMapMock;
 
     @InjectMocks
@@ -54,6 +54,6 @@ class JSONBuilderTest {
         JSONObject expectJSONObject = new JSONObject(jsonMap);
 
         assertEquals(JSONBuilder.error("abcdef"), expectJSONObject);
-    }
+    }*/
 
 }
