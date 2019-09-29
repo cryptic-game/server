@@ -22,6 +22,7 @@ import org.json.simple.parser.ParseException;
 import java.util.UUID;
 
 import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 import static net.cryptic_game.server.utils.JSONBuilder.simple;
 
@@ -73,6 +74,17 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         SocketServerUtils.sendWebsocket(channel, jsonBuilder.build());
 
                         break;
+                    }
+                    case "delete": {
+                        MicroService.getOnlineMicroServices().forEach((microServices -> {
+                            JSONBuilder jsonBuilder = JSONBuilder.anJSON()
+                                    .add("ms", "server")
+                                    .add("endpoint", "delete_user")
+                                    .add("tag", UUID.randomUUID())
+                                    .add("data", JSONBuilder.anJSON()
+                                            .add("user", client.getUser().getUUID()).build());
+                            sendRaw(microServices.getChannel(), jsonBuilder.build());
+                        }));
                     }
                     case "logout": {
                         // TODO
