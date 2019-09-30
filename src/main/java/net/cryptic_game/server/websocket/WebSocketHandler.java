@@ -82,7 +82,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                                     .add("endpoint", "delete_user")
                                     .add("tag", UUID.randomUUID())
                                     .add("data", JSONBuilder.anJSON()
-                                            .add("user", client.getUser().getUUID()).build());
+                                            .add("user_uuid", client.getUser().getUUID()).build());
                             sendRaw(microServices.getChannel(), jsonBuilder.build());
                         }));
                     }
