@@ -43,6 +43,10 @@ public class MicroService {
         return channel;
     }
 
+    public static List<MicroService> getOnlineMicroServices() {
+        return services;
+    }
+
     /**
      * Sends data to microservice
      *
