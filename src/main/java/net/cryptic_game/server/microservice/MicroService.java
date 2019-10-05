@@ -83,9 +83,9 @@ public class MicroService {
 
         new Thread(() -> {
             try {
-                Thread.sleep(1000 * Config.getInteger(DefaultConfig.RESPONSE_TIMEOUT));
+                Thread.sleep(1000L * Config.getInteger(DefaultConfig.RESPONSE_TIMEOUT));
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Interrupted", e);
             }
 
             if (open.containsKey(tag)) {
