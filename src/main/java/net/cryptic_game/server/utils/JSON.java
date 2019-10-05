@@ -16,7 +16,7 @@ public class JSON {
         return get(key, String.class);
     }
 
-    public <T extends UUID> UUID getUUID(String key) {
+    public UUID getUUID(String key) {
         String value = get(key, String.class);
 
         if (value == null) {
@@ -33,7 +33,7 @@ public class JSON {
     public <T> T get(String key, Class<? extends T> type) {
         if (obj.containsKey(key) && type.isInstance(obj.get(key))) {
             try {
-                return (T) type.cast(obj.get(key));
+                return type.cast(obj.get(key));
             } catch (ClassCastException ignored) {
             }
         }
