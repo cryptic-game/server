@@ -67,6 +67,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
                         JSONBuilder jsonBuilder = JSONBuilder.anJSON()
                                 .add("name", user.getName())
+                                .add("uuid", user.getUUID().toString())
                                 .add("mail", user.getMail())
                                 .add("created", user.getCreated().getTime())
                                 .add("last", user.getLast().getTime())
