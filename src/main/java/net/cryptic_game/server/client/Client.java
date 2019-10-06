@@ -50,9 +50,7 @@ public class Client {
     }
 
     public void setSession(Session session) {
-        if(session.isValid()) {
-            this.session = session;
-        }
+        this.session = session;
     }
 
     public boolean isValid() {
@@ -107,6 +105,7 @@ public class Client {
 
             if (client.getSession() != null) {
                 client.getSession().breakSession();
+                client.setSession(null);
             }
         }
     }
