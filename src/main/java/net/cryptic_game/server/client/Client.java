@@ -1,6 +1,7 @@
 package net.cryptic_game.server.client;
 
 import io.netty.channel.Channel;
+import net.cryptic_game.server.user.Session;
 import net.cryptic_game.server.user.User;
 import org.json.simple.JSONObject;
 
@@ -17,6 +18,7 @@ public class Client {
     private User user;
     private Channel channel;
     private ClientType type;
+    private Session session;
 
     private Client(User user, Channel channel, ClientType type) {
         this.user = user;
@@ -32,6 +34,10 @@ public class Client {
         return user;
     }
 
+    public Session getSession() {
+        return session;
+    }
+
     public Channel getChannel() {
         return channel;
     }
@@ -40,6 +46,12 @@ public class Client {
         this.user = user;
         if (user != null) {
             user.updateLast();
+        }
+    }
+
+    public void setSession(Session session) {
+        if(session.isValid()) {
+            this.session = session;
         }
     }
 
@@ -92,6 +104,10 @@ public class Client {
 
         if (client != null) {
             client.setUser(null);
+
+            if (client.getSession() != null) {
+                client.getSession().breakSession();
+            }
         }
     }
 

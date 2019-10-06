@@ -91,7 +91,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         client.getUser().delete();
                     }
                     case "logout": {
-                        // TODO
+                        Client.logout(channel);
+
+                        JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("status", "logout");
+                        sendWebsocket(channel, jsonBuilder.build());
                         break;
                     }
                     default: {
@@ -133,6 +136,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
                 if (session != null && session.isValid()) {
                     client.setUser(session.getUser());
+                    client.setSession(session);
 
                     SocketServerUtils.sendWebsocket(channel, simple("token", session.getToken().toString()));
                 } else {
@@ -221,6 +225,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
         Session session = Session.create(user);
 
         client.setUser(user);
+        client.setSession(session);
 
         SocketServerUtils.sendWebsocket(channel, simple("token", session.getToken().toString()));
     }
