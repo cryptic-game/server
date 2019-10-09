@@ -88,6 +88,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                             sendRaw(microServices.getChannel(), jsonBuilder.build());
                         }));
 
+                        Session.getSessionsOfUser(client.getUser()).forEach(Session::delete);
                         client.getUser().delete();
                     }
                     case "logout": {

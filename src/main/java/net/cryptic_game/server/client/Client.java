@@ -104,7 +104,7 @@ public class Client {
             client.setUser(null);
 
             if (client.getSession() != null) {
-                client.getSession().breakSession();
+                client.getSession().delete();
                 client.setSession(null);
             }
         }

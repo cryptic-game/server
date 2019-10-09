@@ -12,6 +12,7 @@ import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -125,5 +126,19 @@ public class Session implements Serializable {
         }
 
         return s;
+    }
+
+    public static List<Session> getSessionsOfUser(User user) {
+        org.hibernate.Session session = Database.getInstance().openSession();
+
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Session> criteria = builder.createQuery(Session.class);
+        Root<Session> from = criteria.from(Session.class);
+
+        criteria.select(from);
+        criteria.where(builder.equal(from.get("user"), user.getUUID()));
+        TypedQuery<Session> typed = session.createQuery(criteria);
+
+        return typed.getResultList();
     }
 }
