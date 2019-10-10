@@ -38,7 +38,7 @@ Run it with `java -jar target/server-0.1.0-jar-with-dependencies.jar` .
 
 ### Docker Hub
 
-Pull the docker-image from [Docker Hub](https://hub.docker.com/r/useto/cryptic-game-server)!
+Pull the docker-image from [Docker Hub](https://hub.docker.com/r/crypticcp/cryptic-game-server)!
 
 ## Documentation
 
