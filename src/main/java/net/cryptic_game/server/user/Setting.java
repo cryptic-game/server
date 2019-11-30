@@ -5,7 +5,11 @@ import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 @Entity

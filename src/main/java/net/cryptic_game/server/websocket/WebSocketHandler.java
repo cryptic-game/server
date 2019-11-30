@@ -11,6 +11,7 @@ import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.Session;
+import net.cryptic_game.server.user.Setting;
 import net.cryptic_game.server.user.User;
 import net.cryptic_game.server.utils.JSON;
 import net.cryptic_game.server.utils.JSONBuilder;
@@ -88,6 +89,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                             sendRaw(microServices.getChannel(), jsonBuilder.build());
                         }));
 
+                        Setting.getSettingsOfUser(client.getUser()).forEach(Setting::delete);
                         Session.getSessionsOfUser(client.getUser()).forEach(Session::delete);
                         client.getUser().delete();
                     }
