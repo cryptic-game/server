@@ -19,8 +19,7 @@ public enum ServerError {
     UNEXPECTED_ERROR("unexpected error"),
     UNKNOWN_MICROSERVICE("unknown microservice"),
     UNKNOWN_SETTING("unknown setting"),
-    UNSUPPORTED_PARAMETER_SIZE("unsupported parameter size"),
-    SETTING_ALREADY_EXISTS("setting already exists");
+    UNSUPPORTED_PARAMETER_SIZE("unsupported parameter size");
 
 
     private JSONObject response;

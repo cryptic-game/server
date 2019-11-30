@@ -117,6 +117,13 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                                 return;
                             }
 
+                            if(json.get("delete") != null) {
+                                setting.delete();
+                                JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("success", true);
+                                sendWebsocket(channel, jsonBuilder.build());
+                                return;
+                            }
+
                             JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
                             sendWebsocket(channel, jsonBuilder.build());
                             return;
@@ -127,12 +134,16 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                             return;
                         }
 
-                        Setting setting = Setting.createSetting(client.getUser(), key, value);
-
                         if(Setting.getSetting(client.getUser(), key) != null) {
-                            sendWebsocket(channel, SETTING_ALREADY_EXISTS);
+                            Setting setting = Setting.getSetting(client.getUser(), key);
+                            setting.updateValue(value);
+
+                            JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
+                            sendWebsocket(channel, jsonBuilder.build());
                             return;
                         }
+
+                        Setting setting = Setting.createSetting(client.getUser(), key, value);
 
                         JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
                         sendWebsocket(channel, jsonBuilder.build());
