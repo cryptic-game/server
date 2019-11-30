@@ -4,10 +4,7 @@ import net.cryptic_game.server.database.Database;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -15,13 +12,8 @@ import java.util.UUID;
 @Table(name = "user_settings")
 public class Setting implements Serializable  {
 
-    @Id
-    @Type(type = "uuid-char")
-    private UUID user;
-
-    @Id
-    @Column(length = 50, name = "settingKey")
-    private String key;
+    @EmbeddedId
+    private SettingKey key;
 
     @Column(name = "settingValue")
     private String value;
