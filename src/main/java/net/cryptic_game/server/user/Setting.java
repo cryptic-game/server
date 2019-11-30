@@ -1,5 +1,7 @@
 package net.cryptic_game.server.user;
 
+import net.cryptic_game.server.database.Database;
+import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
