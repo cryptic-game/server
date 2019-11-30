@@ -100,6 +100,44 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         sendWebsocket(channel, jsonBuilder.build());
                         break;
                     }
+                    case "setting": {
+                        String key = json.get("key");
+                        String value = json.get("value");
+
+                        if (key == null) {
+                            sendWebsocket(channel, MISSING_PARAMETERS);
+                            return;
+                        }
+
+                        if (value == null) {
+                            Setting setting = Setting.getSetting(client.getUser(), key);
+
+                            if(setting == null) {
+                                sendWebsocket(channel, UNKNOWN_SETTING);
+                                return;
+                            }
+
+                            JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
+                            sendWebsocket(channel, jsonBuilder.build());
+                            return;
+                        }
+
+                        if (key.length() > 50 || value.length() > 255) {
+                            sendWebsocket(channel, UNSUPPORTED_PARAMETER_SIZE);
+                            return;
+                        }
+
+                        Setting setting = Setting.createSetting(client.getUser(), key, value);
+
+                        if(Setting.getSetting(client.getUser(), key) != null) {
+                            sendWebsocket(channel, SETTING_ALREADY_EXISTS);
+                            return;
+                        }
+
+                        JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
+                        sendWebsocket(channel, jsonBuilder.build());
+                        return;
+                    }
                     default: {
                         sendWebsocket(channel, UNKNOWN_ACTION);
                         break;
