@@ -62,6 +62,7 @@ public class Database {
 
         configuration.addAnnotatedClass(net.cryptic_game.server.user.User.class);
         configuration.addAnnotatedClass(net.cryptic_game.server.user.Session.class);
+        configuration.addAnnotatedClass(net.cryptic_game.server.user.Setting.class);
 
         return configuration;
     }
