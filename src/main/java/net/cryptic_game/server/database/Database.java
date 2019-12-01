@@ -54,7 +54,7 @@ public class Database {
                 + "/" + Config.get(DefaultConfig.MYSQL_DATABASE) + "?serverTimezone=" + Calendar.getInstance().getTimeZone().getID() + "&autoReconnect=true");
         settings.put(Environment.USER, Config.get(DefaultConfig.MYSQL_USERNAME));
         settings.put(Environment.PASS, Config.get(DefaultConfig.MYSQL_PASSWORD));
-        settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQL5Dialect");
+        settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQL5InnoDBDialect");
         settings.put(Environment.SHOW_SQL, "true");
         settings.put(Environment.HBM2DDL_AUTO, "update");
 
@@ -62,6 +62,7 @@ public class Database {
 
         configuration.addAnnotatedClass(net.cryptic_game.server.user.User.class);
         configuration.addAnnotatedClass(net.cryptic_game.server.user.Session.class);
+        configuration.addAnnotatedClass(net.cryptic_game.server.user.Setting.class);
 
         return configuration;
     }
