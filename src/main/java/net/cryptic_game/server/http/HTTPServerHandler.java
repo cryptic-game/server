@@ -11,19 +11,20 @@ import io.sentry.Sentry;
 import net.cryptic_game.server.client.Client;
 import net.cryptic_game.server.client.ClientType;
 import net.cryptic_game.server.error.ServerError;
-import net.cryptic_game.server.microservice.MicroService;
-import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
 import static net.cryptic_game.server.error.ServerError.UNEXPECTED_ERROR;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendHTTP;
-import static net.cryptic_game.server.utils.JSONBuilder.anJSON;
-import static net.cryptic_game.server.utils.JSONBuilder.simple;
 
 public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
+
+    private final Map<String, HttpEndpoint> endpoints;
+
+    public HTTPServerHandler(final Map<String, HttpEndpoint> endpoints) {
+        this.endpoints = endpoints;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -35,26 +36,15 @@ public class HTTPServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         FullHttpRequest request = (FullHttpRequest) msg;
-        switch (request.uri().replace("/","")) {
-            case "":
-                sendHTTP(channel, anJSON()
-                        .add("online", "/online")
-                        .add("microservice-status", "/status")
-                        .build());
-            case "online":
-                sendHTTP(channel, simple("online", Client.getOnlineCount()));
-                break;
-            case "status":
-                final List<JSONObject> jsonObjects = new ArrayList<>();
-                MicroService.getOnlineMicroServices().forEach(ms -> {
-                    jsonObjects.add(anJSON()
-                            .add("name", ms.getName())
-                            .build());
-                });
-                sendHTTP(channel, simple("status", jsonObjects));
-                break;
-            default:
-                sendHTTP(channel, ServerError.NOT_FOUND);
+        String path = request.uri();
+        if (path.startsWith("/")) path = path.substring(1);
+
+        final HttpEndpoint httpEndpoint = this.endpoints.get(path);
+
+        if (httpEndpoint == null) {
+            sendHTTP(channel, ServerError.NOT_FOUND);
+        } else {
+            sendHTTP(channel, httpEndpoint.handleRequest());
         }
     }
 
