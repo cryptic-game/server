@@ -11,6 +11,7 @@ import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.Session;
+import net.cryptic_game.server.user.Setting;
 import net.cryptic_game.server.user.User;
 import net.cryptic_game.server.utils.JSON;
 import net.cryptic_game.server.utils.JSONBuilder;
@@ -88,6 +89,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                             sendRaw(microServices.getChannel(), jsonBuilder.build());
                         }));
 
+                        Setting.getSettingsOfUser(client.getUser()).forEach(Setting::delete);
                         Session.getSessionsOfUser(client.getUser()).forEach(Session::delete);
                         client.getUser().delete();
                     }
@@ -97,6 +99,55 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("status", "logout");
                         sendWebsocket(channel, jsonBuilder.build());
                         break;
+                    }
+                    case "setting": {
+                        String key = json.get("key");
+                        String value = json.get("value");
+
+                        if (key == null) {
+                            sendWebsocket(channel, MISSING_PARAMETERS);
+                            return;
+                        }
+
+                        if (value == null) {
+                            Setting setting = Setting.getSetting(client.getUser(), key);
+
+                            if(setting == null) {
+                                sendWebsocket(channel, UNKNOWN_SETTING);
+                                return;
+                            }
+
+                            if(json.get("delete") != null) {
+                                setting.delete();
+                                JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("success", true);
+                                sendWebsocket(channel, jsonBuilder.build());
+                                return;
+                            }
+
+                            JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
+                            sendWebsocket(channel, jsonBuilder.build());
+                            return;
+                        }
+
+                        if (key.length() > 50 || value.length() > 255) {
+                            sendWebsocket(channel, UNSUPPORTED_PARAMETER_SIZE);
+                            return;
+                        }
+
+                        if(Setting.getSetting(client.getUser(), key) != null) {
+                            Setting setting = Setting.getSetting(client.getUser(), key);
+                            setting.updateValue(value);
+
+                            JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
+                            sendWebsocket(channel, jsonBuilder.build());
+                            return;
+                        }
+
+                        Setting setting = Setting.createSetting(client.getUser(), key, value);
+
+                        JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("key", key).add("value", setting.getValue());
+                        sendWebsocket(channel, jsonBuilder.build());
+                        return;
                     }
                     default: {
                         sendWebsocket(channel, UNKNOWN_ACTION);
