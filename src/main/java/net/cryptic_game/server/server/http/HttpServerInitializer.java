@@ -1,4 +1,4 @@
-package net.cryptic_game.server.http;
+package net.cryptic_game.server.server.http;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -19,6 +19,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     public void initChannel(final SocketChannel ch) {
         ch.pipeline().addLast("codec", new HttpServerCodec());
         ch.pipeline().addLast("aggregator", new HttpObjectAggregator(512 * 1024));
-        ch.pipeline().addLast("request", new HttpServerHandler(this.endpoints));
+        ch.pipeline().addLast("request", new NettyServerHandler(this.endpoints));
     }
 }

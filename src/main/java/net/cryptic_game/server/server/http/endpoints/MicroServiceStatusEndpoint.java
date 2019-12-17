@@ -1,6 +1,6 @@
-package net.cryptic_game.server.http.endpoints;
+package net.cryptic_game.server.server.http.endpoints;
 
-import net.cryptic_game.server.http.HttpEndpoint;
+import net.cryptic_game.server.server.http.HttpEndpoint;
 import net.cryptic_game.server.microservice.MicroService;
 import org.json.simple.JSONObject;
 

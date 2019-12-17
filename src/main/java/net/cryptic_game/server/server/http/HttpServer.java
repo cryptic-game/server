@@ -1,13 +1,13 @@
-package net.cryptic_game.server.http;
+package net.cryptic_game.server.server.http;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import net.cryptic_game.server.http.endpoints.MicroServiceStatusEndpoint;
-import net.cryptic_game.server.http.endpoints.PlayerLeaderboardEndpoint;
-import net.cryptic_game.server.http.endpoints.PlayersOnlineEndpoint;
+import net.cryptic_game.server.server.http.endpoints.MicroServiceStatusEndpoint;
+import net.cryptic_game.server.server.http.endpoints.PlayerLeaderboardEndpoint;
+import net.cryptic_game.server.server.http.endpoints.PlayersOnlineEndpoint;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;

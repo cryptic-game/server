@@ -4,7 +4,7 @@ import io.sentry.Sentry;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
-import net.cryptic_game.server.http.HttpServer;
+import net.cryptic_game.server.server.http.HttpServer;
 import net.cryptic_game.server.microservice.MicroServiceServerInitializer;
 import net.cryptic_game.server.socket.SocketSever;
 import net.cryptic_game.server.websocket.WebSocketServerInitializer;

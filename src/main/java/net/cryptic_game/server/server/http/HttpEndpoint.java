@@ -1,4 +1,4 @@
-package net.cryptic_game.server.http;
+package net.cryptic_game.server.server.http;
 
 import org.json.simple.JSONObject;
 

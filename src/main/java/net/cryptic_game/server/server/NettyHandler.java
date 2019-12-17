@@ -1,12 +1,12 @@
-package net.cryptic_game.server.http;
+package net.cryptic_game.server.server;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.log4j.Logger;
 
-public abstract class HttpHandler<T> extends SimpleChannelInboundHandler<T> {
+public abstract class NettyHandler<T> extends SimpleChannelInboundHandler<T> {
 
-    private static final Logger logger = Logger.getLogger(HttpServer.class);
+    private static final Logger logger = Logger.getLogger(NettyHandler.class);
 
     @Override
     public void channelReadComplete(final ChannelHandlerContext ctx) {

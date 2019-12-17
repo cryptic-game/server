@@ -1,9 +1,10 @@
-package net.cryptic_game.server.http;
+package net.cryptic_game.server.server.http;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import net.cryptic_game.server.server.NettyHandler;
 import org.json.simple.JSONObject;
 
 import java.nio.charset.StandardCharsets;
@@ -11,11 +12,11 @@ import java.util.Map;
 
 import static net.cryptic_game.server.utils.JSONBuilder.simple;
 
-public class HttpServerHandler extends HttpHandler<Object> {
+public class NettyServerHandler extends NettyHandler<Object> {
 
     private final Map<String, HttpEndpoint> endpoints;
 
-    public HttpServerHandler(final Map<String, HttpEndpoint> endpoints) {
+    public NettyServerHandler(final Map<String, HttpEndpoint> endpoints) {
         this.endpoints = endpoints;
     }
 
