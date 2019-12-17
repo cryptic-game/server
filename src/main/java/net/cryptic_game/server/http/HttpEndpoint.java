@@ -10,7 +10,7 @@ public abstract class HttpEndpoint {
         this.name = name;
     }
 
-    public abstract JSONObject handleRequest();
+    public abstract JSONObject handleRequest() throws Exception;
 
     public String getName() {
         return this.name;

@@ -7,11 +7,11 @@ import io.netty.handler.codec.http.HttpServerCodec;
 
 import java.util.Map;
 
-public class HTTPServerInitializer extends ChannelInitializer<SocketChannel> {
+public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private final Map<String, HttpEndpoint> endpoints;
 
-    public HTTPServerInitializer(final Map<String, HttpEndpoint> endpoints) {
+    public HttpServerInitializer(final Map<String, HttpEndpoint> endpoints) {
         this.endpoints = endpoints;
     }
 
@@ -19,6 +19,6 @@ public class HTTPServerInitializer extends ChannelInitializer<SocketChannel> {
     public void initChannel(final SocketChannel ch) {
         ch.pipeline().addLast("codec", new HttpServerCodec());
         ch.pipeline().addLast("aggregator", new HttpObjectAggregator(512 * 1024));
-        ch.pipeline().addLast("request", new HTTPServerHandler(this.endpoints));
+        ch.pipeline().addLast("request", new HttpServerHandler(this.endpoints));
     }
 }

@@ -13,43 +13,48 @@ import org.apache.log4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HTTPServer {
+public class HttpServer {
 
-    private static final Logger logger = Logger.getLogger(HTTPServer.class);
+    private static final Logger logger = Logger.getLogger(HttpServer.class);
 
-    private int port;
+    private final int port;
+    private final Map<String, HttpEndpoint> endpoints;
+
     private final EventLoopGroup masterGroup;
     private final EventLoopGroup slaveGroup;
 
-    private final Map<String, HttpEndpoint> endpoints;
-
-    public HTTPServer(int port) {
+    public HttpServer(final int port) {
         this.port = port;
-
-        masterGroup = new NioEventLoopGroup();
-        slaveGroup = new NioEventLoopGroup();
-
         this.endpoints = new HashMap<>();
 
+        this.masterGroup = new NioEventLoopGroup();
+        this.slaveGroup = new NioEventLoopGroup();
+
+        this.registerEndpoints();
+    }
+
+    private void registerEndpoints() {
         this.addEndpoint(new PlayersOnlineEndpoint());
         this.addEndpoint(new MicroServiceStatusEndpoint());
         this.addEndpoint(new PlayerLeaderboardEndpoint());
-
     }
 
     private void addEndpoint(final HttpEndpoint endpoint) {
-        this.endpoints.put(endpoint.getName(), endpoint);
+        this.endpoints.put(endpoint.getName().toLowerCase(), endpoint);
     }
 
     public void start() {
         try {
-            final ServerBootstrap bootstrap = new ServerBootstrap().group(masterGroup, slaveGroup)
-                    .channel(NioServerSocketChannel.class).childHandler(new HTTPServerInitializer(this.endpoints))
-                    .option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
+            final ServerBootstrap bootstrap = new ServerBootstrap()
+                    .group(masterGroup, slaveGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new HttpServerInitializer(this.endpoints))
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+
             bootstrap.bind(this.port).sync();
-            logger.info("http booted on port " + port);
+            logger.info("HttpSever is listening on port " + this.port + ".");
         } catch (final InterruptedException ignored) {
         }
     }
-
 }
