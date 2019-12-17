@@ -36,7 +36,7 @@ public class HttpServer {
     private void registerEndpoints() {
         this.addEndpoint(new PlayersOnlineEndpoint());
         this.addEndpoint(new MicroServiceStatusEndpoint());
-        this.addEndpoint(new PlayerLeaderboardEndpoint());
+//        this.addEndpoint(new PlayerLeaderboardEndpoint());
     }
 
     private void addEndpoint(final HttpEndpoint endpoint) {
