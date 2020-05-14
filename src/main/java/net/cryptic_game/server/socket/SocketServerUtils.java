@@ -13,6 +13,7 @@ public class SocketServerUtils {
     public static void sendRaw(Channel channel, JSONObject data) {
         channel.writeAndFlush(data.toString());
     }
+
     public static void sendRaw(Channel channel, ServerError serverError) {
         sendRaw(channel, serverError.getResponse());
     }
@@ -20,6 +21,7 @@ public class SocketServerUtils {
     public static void sendWebsocket(Channel channel, JSONObject data) {
         channel.writeAndFlush(new TextWebSocketFrame(data.toString()));
     }
+
     public static void sendWebsocket(Channel channel, ServerError serverError) {
         sendWebsocket(channel, serverError.getResponse());
     }
@@ -36,6 +38,7 @@ public class SocketServerUtils {
 
         channel.writeAndFlush(response);
     }
+
     public static void sendHTTP(Channel channel, ServerError serverError) {
         sendHTTP(channel, serverError.getResponse());
     }

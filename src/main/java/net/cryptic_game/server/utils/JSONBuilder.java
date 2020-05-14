@@ -13,15 +13,6 @@ public class JSONBuilder {
         jsonMap = new HashMap<>();
     }
 
-    public JSONBuilder add(String key, Object value) {
-        jsonMap.put(key, value);
-        return this;
-    }
-
-    public JSONObject build() {
-        return new JSONObject(jsonMap);
-    }
-
     public static JSONBuilder anJSON() {
         return new JSONBuilder();
     }
@@ -32,5 +23,14 @@ public class JSONBuilder {
 
     public static JSONObject error(String message) {
         return simple("error", message);
+    }
+
+    public JSONBuilder add(String key, Object value) {
+        jsonMap.put(key, value);
+        return this;
+    }
+
+    public JSONObject build() {
+        return new JSONObject(jsonMap);
     }
 }

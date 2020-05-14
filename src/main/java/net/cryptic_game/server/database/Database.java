@@ -29,6 +29,10 @@ public class Database {
 
     }
 
+    public static Database getInstance() {
+        return instance;
+    }
+
     public SessionFactory getSessionFactory() {
         return sessionFactory;
     }
@@ -38,7 +42,7 @@ public class Database {
         try {
             session.beginTransaction();
             session.getTransaction().commit();
-        } catch(Exception ignored) {
+        } catch (Exception ignored) {
         }
 
         return session;
@@ -65,10 +69,6 @@ public class Database {
         configuration.addAnnotatedClass(net.cryptic_game.server.user.Setting.class);
 
         return configuration;
-    }
-
-    public static Database getInstance() {
-        return instance;
     }
 
 }

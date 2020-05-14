@@ -35,16 +35,86 @@ public class MicroService {
         this.channel = channel;
     }
 
+    public static List<MicroService> getOnlineMicroServices() {
+        return services;
+    }
+
+    /**
+     * Registers a microservice
+     *
+     * @param name    name of the microservice
+     * @param channel channel of the microservice
+     */
+    static void register(String name, Channel channel) {
+        services.add(new MicroService(name, channel));
+        logger.info("microservice registered: " + name);
+
+        for (Request r : open.values()) {
+            if (r.getMicroService().equals(name)) {
+                sendRaw(channel, r.getData());
+                return;
+            }
+        }
+    }
+
+    /**
+     * Unregisters a microservice
+     *
+     * @param channel channel of the microservice
+     */
+    static void unregister(Channel channel) {
+        MicroService ms = MicroService.get(channel);
+
+        if (ms != null) {
+            services.remove(ms);
+            logger.info("microservice unregistered: " + ms.getName());
+        }
+    }
+
+    /**
+     * @param name name of the microservice
+     * @return the microservice by name or null
+     */
+    public static MicroService get(String name) {
+        for (MicroService ms : services) {
+            if (ms.getName().equals(name)) {
+                return ms;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param channel channel of the microservice
+     * @return the microservice by channel or null
+     */
+    public static MicroService get(Channel channel) {
+        for (MicroService ms : services) {
+            if (ms.getChannel().equals(channel)) {
+                return ms;
+            }
+        }
+        return null;
+    }
+
+    static void sendToUser(UUID user, JSONObject data) {
+        User userAccount = User.get(user);
+
+        if (userAccount != null) {
+            Client clientOfUser = Client.getClient(userAccount);
+
+            if (clientOfUser != null) {
+                clientOfUser.send(data);
+            }
+        }
+    }
+
     public String getName() {
         return name;
     }
 
     public Channel getChannel() {
         return channel;
-    }
-
-    public static List<MicroService> getOnlineMicroServices() {
-        return services;
     }
 
     /**
@@ -148,76 +218,6 @@ public class MicroService {
                 .add("endpoint", endpoint)
                 .add("tag", tag.toString())
                 .add("data", data).build());
-    }
-
-    /**
-     * Registers a microservice
-     *
-     * @param name    name of the microservice
-     * @param channel channel of the microservice
-     */
-    static void register(String name, Channel channel) {
-        services.add(new MicroService(name, channel));
-        logger.info("microservice registered: " + name);
-
-        for (Request r : open.values()) {
-            if (r.getMicroService().equals(name)) {
-                sendRaw(channel, r.getData());
-                return;
-            }
-        }
-    }
-
-    /**
-     * Unregisters a microservice
-     *
-     * @param channel channel of the microservice
-     */
-    static void unregister(Channel channel) {
-        MicroService ms = MicroService.get(channel);
-
-        if (ms != null) {
-            services.remove(ms);
-            logger.info("microservice unregistered: " + ms.getName());
-        }
-    }
-
-    /**
-     * @param name name of the microservice
-     * @return the microservice by name or null
-     */
-    public static MicroService get(String name) {
-        for (MicroService ms : services) {
-            if (ms.getName().equals(name)) {
-                return ms;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param channel channel of the microservice
-     * @return the microservice by channel or null
-     */
-    public static MicroService get(Channel channel) {
-        for (MicroService ms : services) {
-            if (ms.getChannel().equals(channel)) {
-                return ms;
-            }
-        }
-        return null;
-    }
-
-    static void sendToUser(UUID user, JSONObject data) {
-        User userAccount = User.get(user);
-
-        if (userAccount != null) {
-            Client clientOfUser = Client.getClient(userAccount);
-
-            if (clientOfUser != null) {
-                clientOfUser.send(data);
-            }
-        }
     }
 
 }

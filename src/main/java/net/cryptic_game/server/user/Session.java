@@ -44,51 +44,6 @@ public class Session implements Serializable {
     public Session() {
     }
 
-    public UUID getUUID() {
-        return uuid;
-    }
-
-    public UUID getToken() {
-        return token;
-    }
-
-    public User getUser() {
-        return User.get(user);
-    }
-
-    public Date getCreated() {
-        return created;
-    }
-
-    public boolean isValid() {
-        return this.valid && this.created.before(new Date(Calendar.getInstance().getTime().getTime() + EXPIRE));
-    }
-
-    public void breakSession() {
-        this.valid = false;
-        org.hibernate.Session session = Database.getInstance().openSession();
-        session.beginTransaction();
-
-        session.update(this);
-        
-        session.getTransaction().commit();
-        session.close();
-    }
-
-    public void delete() {
-        org.hibernate.Session session = Database.getInstance().openSession();
-        session.beginTransaction();
-
-        session.delete(this);
-
-        session.getTransaction().commit();
-        session.close();
-    }
-
-    public String toString() {
-        return this.getToken().toString();
-    }
-
     public static Session create(User user) {
         Session newSession = new Session(UUID.randomUUID(), UUID.randomUUID(), user,
                 new Date(Calendar.getInstance().getTime().getTime()), true);
@@ -140,5 +95,50 @@ public class Session implements Serializable {
         TypedQuery<Session> typed = session.createQuery(criteria);
 
         return typed.getResultList();
+    }
+
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    public UUID getToken() {
+        return token;
+    }
+
+    public User getUser() {
+        return User.get(user);
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public boolean isValid() {
+        return this.valid && this.created.before(new Date(Calendar.getInstance().getTime().getTime() + EXPIRE));
+    }
+
+    public void breakSession() {
+        this.valid = false;
+        org.hibernate.Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.update(this);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public void delete() {
+        org.hibernate.Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.delete(this);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public String toString() {
+        return this.getToken().toString();
     }
 }

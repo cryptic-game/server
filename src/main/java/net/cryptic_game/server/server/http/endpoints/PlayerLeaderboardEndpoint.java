@@ -3,8 +3,6 @@ package net.cryptic_game.server.server.http.endpoints;
 import net.cryptic_game.server.server.http.HttpEndpoint;
 import org.json.simple.JSONObject;
 
-import static net.cryptic_game.server.socket.SocketServerUtils.sendHTTP;
-import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 import static net.cryptic_game.server.utils.JSONBuilder.simple;
 
 public class PlayerLeaderboardEndpoint extends HttpEndpoint {

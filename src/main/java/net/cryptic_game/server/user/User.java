@@ -2,7 +2,6 @@ package net.cryptic_game.server.user;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import net.cryptic_game.server.database.Database;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 
@@ -38,71 +37,6 @@ public class User {
     }
 
     public User() {
-    }
-
-    public UUID getUUID() {
-        return uuid;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Date getCreated() {
-        return created;
-    }
-
-    public Date getLast() {
-        return last;
-    }
-
-    public boolean checkPassword(String password) {
-        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), this.password);
-
-        return result.verified;
-    }
-
-    public boolean changePassword(String oldPassword, String newPassword) {
-        if (isValidPassword(newPassword) && checkPassword(oldPassword)) {
-            this.password = hashPassword(newPassword);
-
-            Session session = Database.getInstance().openSession();
-            session.beginTransaction();
-
-            session.update(this);
-
-            session.getTransaction().commit();
-            session.close();
-
-            return true;
-        }
-        return false;
-    }
-
-    public void delete() {
-        Session session = Database.getInstance().openSession();
-        session.beginTransaction();
-
-        session.delete(this);
-
-        session.getTransaction().commit();
-        session.close();
-    }
-
-    public String toString() {
-        return this.getName();
-    }
-
-    public void updateLast() {
-        this.last = new Date(Calendar.getInstance().getTime().getTime());
-
-        Session session = Database.getInstance().openSession();
-        session.beginTransaction();
-
-        session.update(this);
-
-        session.getTransaction().commit();
-        session.close();
     }
 
     public static User get(UUID uuid) {
@@ -169,5 +103,70 @@ public class User {
 
     private static String hashPassword(String toHash) {
         return BCrypt.withDefaults().hashToString(12, toHash.toCharArray());
+    }
+
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public Date getLast() {
+        return last;
+    }
+
+    public boolean checkPassword(String password) {
+        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), this.password);
+
+        return result.verified;
+    }
+
+    public boolean changePassword(String oldPassword, String newPassword) {
+        if (isValidPassword(newPassword) && checkPassword(oldPassword)) {
+            this.password = hashPassword(newPassword);
+
+            Session session = Database.getInstance().openSession();
+            session.beginTransaction();
+
+            session.update(this);
+
+            session.getTransaction().commit();
+            session.close();
+
+            return true;
+        }
+        return false;
+    }
+
+    public void delete() {
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.delete(this);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    public String toString() {
+        return this.getName();
+    }
+
+    public void updateLast() {
+        this.last = new Date(Calendar.getInstance().getTime().getTime());
+
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.update(this);
+
+        session.getTransaction().commit();
+        session.close();
     }
 }

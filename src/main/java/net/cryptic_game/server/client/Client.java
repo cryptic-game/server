@@ -30,41 +30,6 @@ public class Client {
         this(null, channel, type);
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public Session getSession() {
-        return session;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-        if (user != null) {
-            user.updateLast();
-        }
-    }
-
-    public void setSession(Session session) {
-        this.session = session;
-    }
-
-    public boolean isValid() {
-        return getUser() != null;
-    }
-
-    public void send(JSONObject data) {
-        if (type.equals(ClientType.HTTP)) {
-            sendHTTP(channel, data);
-        } else if (type.equals(ClientType.WEBSOCKET)) {
-            sendWebsocket(channel, data);
-        }
-    }
-
     public static Client getClient(Channel channel) {
         for (Client client : clients) {
             if (client.getChannel().equals(channel)) {
@@ -124,6 +89,41 @@ public class Client {
         Client client = getClient(channel);
         if (client != null) {
             clients.remove(client);
+        }
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+        if (user != null) {
+            user.updateLast();
+        }
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public boolean isValid() {
+        return getUser() != null;
+    }
+
+    public void send(JSONObject data) {
+        if (type.equals(ClientType.HTTP)) {
+            sendHTTP(channel, data);
+        } else if (type.equals(ClientType.WEBSOCKET)) {
+            sendWebsocket(channel, data);
         }
     }
 

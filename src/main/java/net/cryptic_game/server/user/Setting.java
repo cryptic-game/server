@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "user_settings")
-public class Setting implements Serializable  {
+public class Setting implements Serializable {
 
     @EmbeddedId
     private SettingKey key;
@@ -28,43 +28,6 @@ public class Setting implements Serializable  {
     }
 
     public Setting() {
-    }
-
-    public UUID getUser() {
-        return this.key.user;
-    }
-
-    public String getKey() {
-        return this.key.key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void updateValue(String newValue) {
-        this.value = newValue;
-        update();
-    }
-
-    public void delete() {
-        Session session = Database.getInstance().openSession();
-        session.beginTransaction();
-
-        session.delete(this);
-
-        session.getTransaction().commit();
-        session.close();
-    }
-
-    private void update() {
-        Session session = Database.getInstance().openSession();
-        session.beginTransaction();
-
-        session.update(this);
-
-        session.getTransaction().commit();
-        session.close();
     }
 
     public static Setting createSetting(User user, String key, String value) {
@@ -108,6 +71,43 @@ public class Setting implements Serializable  {
         session.close();
 
         return settings;
+    }
+
+    public UUID getUser() {
+        return this.key.user;
+    }
+
+    public String getKey() {
+        return this.key.key;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void updateValue(String newValue) {
+        this.value = newValue;
+        update();
+    }
+
+    public void delete() {
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.delete(this);
+
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    private void update() {
+        Session session = Database.getInstance().openSession();
+        session.beginTransaction();
+
+        session.update(this);
+
+        session.getTransaction().commit();
+        session.close();
     }
 
     public static class SettingKey implements Serializable {

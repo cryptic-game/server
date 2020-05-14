@@ -1,7 +1,7 @@
 package net.cryptic_game.server.server.http.endpoints;
 
-import net.cryptic_game.server.server.http.HttpEndpoint;
 import net.cryptic_game.server.microservice.MicroService;
+import net.cryptic_game.server.server.http.HttpEndpoint;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;

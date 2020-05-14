@@ -29,10 +29,6 @@ public enum DefaultConfig {
         this.value = value;
     }
 
-    public Object getValue() {
-        return value;
-    }
-
     /**
      * @return map with all key-value pairs
      */
@@ -44,6 +40,10 @@ public enum DefaultConfig {
         }
 
         return defaults;
+    }
+
+    public Object getValue() {
+        return value;
     }
 
 }
