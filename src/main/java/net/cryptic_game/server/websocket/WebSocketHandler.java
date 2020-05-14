@@ -205,6 +205,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                     return;
                 }
 
+                if (name.length() > 256) {
+                    sendWebsocket(channel, UNSUPPORTED_FORMAT);
+                    return;
+                }
+
                 User user = User.get(name);
 
                 if (user == null || !user.checkPassword(password)) {
@@ -222,6 +227,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
 
                 if (name == null || password == null) {
                     sendWebsocket(channel, MISSING_PARAMETERS);
+                    return;
+                }
+
+                if (name.length() > 256) {
+                    sendWebsocket(channel, UNSUPPORTED_FORMAT);
                     return;
                 }
 
