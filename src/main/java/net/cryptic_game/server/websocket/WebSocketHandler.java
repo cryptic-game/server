@@ -69,7 +69,6 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         JSONBuilder jsonBuilder = JSONBuilder.anJSON()
                                 .add("name", user.getName())
                                 .add("uuid", user.getUUID().toString())
-                                .add("mail", user.getMail())
                                 .add("created", user.getCreated().getTime())
                                 .add("last", user.getLast().getTime())
                                 .add("online", Client.getOnlineCount());
@@ -112,12 +111,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         if (value == null) {
                             Setting setting = Setting.getSetting(client.getUser(), key);
 
-                            if(setting == null) {
+                            if (setting == null) {
                                 sendWebsocket(channel, UNKNOWN_SETTING);
                                 return;
                             }
 
-                            if(json.get("delete") != null) {
+                            if (json.get("delete") != null) {
                                 setting.delete();
                                 JSONBuilder jsonBuilder = JSONBuilder.anJSON().add("success", true);
                                 sendWebsocket(channel, jsonBuilder.build());
@@ -134,7 +133,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                             return;
                         }
 
-                        if(Setting.getSetting(client.getUser(), key) != null) {
+                        if (Setting.getSetting(client.getUser(), key) != null) {
                             Setting setting = Setting.getSetting(client.getUser(), key);
                             setting.updateValue(value);
 
@@ -220,9 +219,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
             case "register": {
                 String name = json.get("name");
                 String password = json.get("password");
-                String mail = json.get("mail");
 
-                if (name == null || password == null || mail == null) {
+                if (name == null || password == null) {
                     sendWebsocket(channel, MISSING_PARAMETERS);
                     return;
                 }
@@ -232,12 +230,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                     return;
                 }
 
-                if (!User.isValidMailAddress(mail)) {
-                    sendWebsocket(channel, INVALID_EMAIL);
-                    return;
-                }
-
-                User user = User.create(name, mail, password);
+                User user = User.create(name, password);
                 if (user == null) {
                     sendWebsocket(channel, USERNAME_ALREADY_EXISTS);
                     return;

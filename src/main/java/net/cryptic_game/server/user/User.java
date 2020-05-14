@@ -25,16 +25,13 @@ public class User {
     @Type(type = "text")
     private String name;
     @Type(type = "text")
-    private String mail;
-    @Type(type = "text")
     private String password;
     private Date created;
     private Date last;
 
-    private User(UUID uuid, String name, String mail, String password, Date created, Date last) {
+    private User(UUID uuid, String name, String password, Date created, Date last) {
         this.uuid = uuid;
         this.name = name;
-        this.mail = mail;
         this.password = password;
         this.created = created;
         this.last = last;
@@ -49,10 +46,6 @@ public class User {
 
     public String getName() {
         return name;
-    }
-
-    public String getMail() {
-        return mail;
     }
 
     public Date getCreated() {
@@ -148,13 +141,13 @@ public class User {
         return user;
     }
 
-    public static User create(String name, String mail, String password) {
-        if (isValidMailAddress(mail) && isValidPassword(password) && get(name) == null) {
+    public static User create(String name, String password) {
+        if (isValidPassword(password) && get(name) == null) {
             UUID uuid = UUID.randomUUID();
 
             Date now = new Date(Calendar.getInstance().getTime().getTime());
             String hash = hashPassword(password);
-            User user = new User(uuid, name, mail, hash, now, now);
+            User user = new User(uuid, name, hash, now, now);
 
             Session session = Database.getInstance().openSession();
             session.beginTransaction();
@@ -168,10 +161,6 @@ public class User {
         }
 
         return null;
-    }
-
-    public static boolean isValidMailAddress(String mail) {
-        return EmailValidator.getInstance().isValid(mail);
     }
 
     public static boolean isValidPassword(String password) {

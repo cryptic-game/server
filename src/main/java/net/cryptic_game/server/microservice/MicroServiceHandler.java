@@ -97,7 +97,6 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 if (user != null) {
                     resultData.add("uuid", user.getUUID().toString())
                             .add("name", user.getName())
-                            .add("mail", user.getMail())
                             .add("created", user.getCreated().getTime())
                             .add("last", user.getLast().getTime()).build();
                 }
