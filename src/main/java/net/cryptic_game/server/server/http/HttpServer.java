@@ -7,14 +7,15 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import net.cryptic_game.server.server.http.endpoints.MicroServiceStatusEndpoint;
 import net.cryptic_game.server.server.http.endpoints.PlayersOnlineEndpoint;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class HttpServer {
 
-    private static final Logger logger = Logger.getLogger(HttpServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
     private final int port;
     private final Map<String, HttpEndpoint> endpoints;

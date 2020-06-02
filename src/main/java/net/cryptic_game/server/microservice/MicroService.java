@@ -8,9 +8,10 @@ import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.user.User;
 import net.cryptic_game.server.utils.JSON;
 import net.cryptic_game.server.utils.JSONBuilder;
-import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -19,7 +20,7 @@ import static net.cryptic_game.server.utils.JSONBuilder.error;
 
 public class MicroService {
 
-    private static final Logger logger = Logger.getLogger(MicroService.class);
+    private static final Logger logger = LoggerFactory.getLogger(MicroService.class);
 
     // open requests of client
     private static Map<UUID, Request> open = new HashMap<>();
