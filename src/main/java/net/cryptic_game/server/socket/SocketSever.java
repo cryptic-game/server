@@ -10,14 +10,15 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
 public class SocketSever {
 
     private static final boolean EPOLL = Epoll.isAvailable();
-    private static final Logger logger = Logger.getLogger(SocketSever.class);
+    private static final Logger logger = LoggerFactory.getLogger(SocketSever.class);
 
     private int port;
     private String name;
