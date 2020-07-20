@@ -4,10 +4,11 @@ import net.cryptic_game.server.database.Database;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
@@ -56,21 +57,11 @@ public class Setting implements Serializable {
     }
 
     public static List<Setting> getSettingsOfUser(User user) {
-        Session session = Database.getInstance().openSession();
-
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<Setting> criteria = builder.createQuery(Setting.class);
-        Root<Setting> from = criteria.from(Setting.class);
-
-        criteria.select(from);
-        criteria.where(builder.equal(from.get("user"), user.getUUID()));
-        TypedQuery<Setting> typed = session.createQuery(criteria);
-
-        List<Setting> settings = typed.getResultList();
-
-        session.close();
-
-        return settings;
+        try (Session session = Database.getInstance().openSession()) {
+            return session.createQuery("select object(s) from Setting as s where s.key.user = :userId", Setting.class)
+                    .setParameter("userId", user.getUUID())
+                    .getResultList();
+        }
     }
 
     public UUID getUser() {
@@ -110,6 +101,7 @@ public class Setting implements Serializable {
         session.close();
     }
 
+    @Embeddable
     public static class SettingKey implements Serializable {
 
         @Type(type = "uuid-char")
@@ -117,6 +109,9 @@ public class Setting implements Serializable {
 
         @Column(length = 50, name = "settingKey")
         private String key;
+
+        public SettingKey() {
+        }
 
         SettingKey(UUID user, String key) {
             this.user = user;
