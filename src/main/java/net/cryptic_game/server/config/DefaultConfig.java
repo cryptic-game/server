@@ -1,5 +1,7 @@
 package net.cryptic_game.server.config;
 
+import net.cryptic_game.server.sql.SqlServerType;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,10 +14,13 @@ public enum DefaultConfig {
     HTTP_PORT(8080),
     AUTH_ENABLED(true),
     STORAGE_LOCATION("data/"),
-    MYSQL_HOSTNAME("localhost"),
-    MYSQL_USERNAME("cryptic"),
-    MYSQL_PASSWORD("cryptic"),
-    MYSQL_DATABASE("cryptic"),
+
+    SQL_SERVER_TYPE(SqlServerType.MARIADB_10_03.toString()),
+    SQL_SERVER_LOCATION("//localhost:3306"),
+    SQL_SERVER_USERNAME("cryptic"),
+    SQL_SERVER_PASSWORD("cryptic"),
+    SQL_SERVER_DATABASE("cryptic"),
+
     MYSQL_PORT(3306),
     PRODUCTIVE(true),
     SESSION_EXPIRE(60 * 60 * 24 * 2), // 2 days

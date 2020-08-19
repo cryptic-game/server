@@ -1,6 +1,6 @@
 package net.cryptic_game.server.user;
 
-import net.cryptic_game.server.database.Database;
+import net.cryptic_game.server.sql.SqlService;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 
@@ -32,7 +32,7 @@ public class Setting implements Serializable {
     }
 
     public static Setting createSetting(User user, String key, String value) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         Setting setting = new Setting(user.getUUID(), key, value);
@@ -45,7 +45,7 @@ public class Setting implements Serializable {
     }
 
     public static Setting getSetting(User user, String key) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         Setting setting = session.get(Setting.class, new SettingKey(user.getUUID(), key));
@@ -57,7 +57,7 @@ public class Setting implements Serializable {
     }
 
     public static List<Setting> getSettingsOfUser(User user) {
-        try (Session session = Database.getInstance().openSession()) {
+        try (Session session = SqlService.getInstance().openSession()) {
             return session.createQuery("select object(s) from Setting as s where s.key.user = :userId", Setting.class)
                     .setParameter("userId", user.getUUID())
                     .getResultList();
@@ -82,7 +82,7 @@ public class Setting implements Serializable {
     }
 
     public void delete() {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.delete(this);
@@ -92,7 +92,7 @@ public class Setting implements Serializable {
     }
 
     private void update() {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.update(this);

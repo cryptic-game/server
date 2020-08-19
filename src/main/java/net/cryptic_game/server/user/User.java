@@ -1,7 +1,7 @@
 package net.cryptic_game.server.user;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
-import net.cryptic_game.server.database.Database;
+import net.cryptic_game.server.sql.SqlService;
 import org.hibernate.Session;
 import org.hibernate.annotations.Type;
 
@@ -44,7 +44,7 @@ public class User {
     }
 
     public static User get(UUID uuid) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         User user = session.get(User.class, uuid);
@@ -56,7 +56,7 @@ public class User {
     }
 
     public static User get(String name) {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<User> criteria = builder.createQuery(User.class);
@@ -87,7 +87,7 @@ public class User {
             String hash = hashPassword(password);
             User user = new User(uuid, name, hash, now, now);
 
-            Session session = Database.getInstance().openSession();
+            Session session = SqlService.getInstance().openSession();
             session.beginTransaction();
 
             session.save(user);
@@ -135,7 +135,7 @@ public class User {
         if (isValidPassword(newPassword) && checkPassword(oldPassword)) {
             this.password = hashPassword(newPassword);
 
-            Session session = Database.getInstance().openSession();
+            Session session = SqlService.getInstance().openSession();
             session.beginTransaction();
 
             session.update(this);
@@ -149,7 +149,7 @@ public class User {
     }
 
     public void delete() {
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.delete(this);
@@ -165,7 +165,7 @@ public class User {
     public void updateLast() {
         this.last = new Date(Calendar.getInstance().getTime().getTime());
 
-        Session session = Database.getInstance().openSession();
+        Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.update(this);

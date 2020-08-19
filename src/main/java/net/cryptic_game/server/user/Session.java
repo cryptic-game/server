@@ -2,7 +2,7 @@ package net.cryptic_game.server.user;
 
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
-import net.cryptic_game.server.database.Database;
+import net.cryptic_game.server.sql.SqlService;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
@@ -52,7 +52,7 @@ public class Session implements Serializable {
         Session newSession = new Session(UUID.randomUUID(), UUID.randomUUID(), user,
                 new Date(Calendar.getInstance().getTime().getTime()), true);
 
-        org.hibernate.Session session = Database.getInstance().openSession();
+        org.hibernate.Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.save(newSession);
@@ -64,7 +64,7 @@ public class Session implements Serializable {
     }
 
     public static Session get(UUID token) {
-        org.hibernate.Session session = Database.getInstance().openSession();
+        org.hibernate.Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Session> criteria = builder.createQuery(Session.class);
@@ -88,7 +88,7 @@ public class Session implements Serializable {
     }
 
     public static List<Session> getSessionsOfUser(User user) {
-        org.hibernate.Session session = Database.getInstance().openSession();
+        org.hibernate.Session session = SqlService.getInstance().openSession();
 
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Session> criteria = builder.createQuery(Session.class);
@@ -123,7 +123,7 @@ public class Session implements Serializable {
 
     public void breakSession() {
         this.valid = false;
-        org.hibernate.Session session = Database.getInstance().openSession();
+        org.hibernate.Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.update(this);
@@ -133,7 +133,7 @@ public class Session implements Serializable {
     }
 
     public void delete() {
-        org.hibernate.Session session = Database.getInstance().openSession();
+        org.hibernate.Session session = SqlService.getInstance().openSession();
         session.beginTransaction();
 
         session.delete(this);
