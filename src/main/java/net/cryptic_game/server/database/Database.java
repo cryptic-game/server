@@ -16,7 +16,7 @@ public class Database {
 
     private static Database instance;
 
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     public Database() {
         instance = this;
@@ -53,8 +53,8 @@ public class Database {
 
         Properties settings = new Properties();
 
-        settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
-        settings.put(Environment.URL, "jdbc:mysql://" + Config.get(DefaultConfig.MYSQL_HOSTNAME) + ":" + Config.get(DefaultConfig.MYSQL_PORT)
+        settings.put(Environment.DRIVER, "org.mariadb.jdbc.Driver");
+        settings.put(Environment.URL, "jdbc:mariadb://" + Config.get(DefaultConfig.MYSQL_HOSTNAME) + ":" + Config.get(DefaultConfig.MYSQL_PORT)
                 + "/" + Config.get(DefaultConfig.MYSQL_DATABASE) + "?serverTimezone=" + Calendar.getInstance().getTimeZone().getID() + "&autoReconnect=true");
         settings.put(Environment.USER, Config.get(DefaultConfig.MYSQL_USERNAME));
         settings.put(Environment.PASS, Config.get(DefaultConfig.MYSQL_PASSWORD));
@@ -70,5 +70,4 @@ public class Database {
 
         return configuration;
     }
-
 }
