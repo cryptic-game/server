@@ -17,6 +17,7 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -144,5 +145,22 @@ public class Session implements Serializable {
 
     public String toString() {
         return this.getToken().toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Session)) return false;
+        Session session = (Session) o;
+        return isValid() == session.isValid() &&
+                this.uuid.equals(session.uuid) &&
+                this.getToken().equals(session.getToken()) &&
+                this.getUser().equals(session.getUser()) &&
+                this.getCreated().equals(session.getCreated());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.uuid, this.getToken(), this.getUser(), this.isValid(), this.getCreated());
     }
 }

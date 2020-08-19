@@ -23,7 +23,17 @@ import org.json.simple.parser.ParseException;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.error.ServerError.INVALID_PASSWORD;
+import static net.cryptic_game.server.error.ServerError.INVALID_TOKEN;
+import static net.cryptic_game.server.error.ServerError.MISSING_ACTION;
+import static net.cryptic_game.server.error.ServerError.MISSING_PARAMETERS;
+import static net.cryptic_game.server.error.ServerError.PERMISSION_DENIED;
+import static net.cryptic_game.server.error.ServerError.UNEXPECTED_ERROR;
+import static net.cryptic_game.server.error.ServerError.UNKNOWN_ACTION;
+import static net.cryptic_game.server.error.ServerError.UNKNOWN_SETTING;
+import static net.cryptic_game.server.error.ServerError.UNSUPPORTED_FORMAT;
+import static net.cryptic_game.server.error.ServerError.UNSUPPORTED_PARAMETER_SIZE;
+import static net.cryptic_game.server.error.ServerError.USERNAME_ALREADY_EXISTS;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 import static net.cryptic_game.server.utils.JSONBuilder.simple;

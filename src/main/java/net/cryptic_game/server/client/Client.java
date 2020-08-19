@@ -14,10 +14,9 @@ import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 public class Client {
 
     private static final List<Client> clients = new ArrayList<>();
-
-    private User user;
     private final Channel channel;
     private final ClientType type;
+    private User user;
     private Session session;
 
     private Client(User user, Channel channel, ClientType type) {

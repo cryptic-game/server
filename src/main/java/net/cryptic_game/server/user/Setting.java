@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -116,6 +117,20 @@ public class Setting implements Serializable {
         SettingKey(UUID user, String key) {
             this.user = user;
             this.key = key;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (!(o instanceof SettingKey)) return false;
+            final SettingKey that = (SettingKey) o;
+            return this.user.equals(that.user) &&
+                    this.key.equals(that.key);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.user, this.key);
         }
     }
 }
