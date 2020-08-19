@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class JSONBuilder {
 
-    private Map<String, Object> jsonMap;
+    private final Map<String, Object> jsonMap;
 
     private JSONBuilder() {
         jsonMap = new HashMap<>();

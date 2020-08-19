@@ -4,8 +4,8 @@ import java.util.Map;
 
 public class Config {
 
-    private static Map<String, String> env = System.getenv();
-    private static Map<String, String> defaults = DefaultConfig.defaults();
+    private static final Map<String, String> env = System.getenv();
+    private static final Map<String, String> defaults = DefaultConfig.defaults();
 
     public static String get(String key) {
         if (env.containsKey(key)) {

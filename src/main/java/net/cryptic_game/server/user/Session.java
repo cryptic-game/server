@@ -5,7 +5,11 @@ import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.database.Database;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.NoResultException;
+import javax.persistence.Table;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -19,7 +23,7 @@ import java.util.UUID;
 @Table(name = "session")
 public class Session implements Serializable {
 
-    private static int EXPIRE = Config.getInteger(DefaultConfig.SESSION_EXPIRE) * 1000;
+    private static final int EXPIRE = Config.getInteger(DefaultConfig.SESSION_EXPIRE) * 1000;
 
     @Id
     @Type(type = "uuid-char")

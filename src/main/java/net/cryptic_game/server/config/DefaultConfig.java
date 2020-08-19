@@ -23,7 +23,7 @@ public enum DefaultConfig {
     LOG_LEVEL("INFO"),
     SENTRY_DSN("");
 
-    private Object value;
+    private final Object value;
 
     DefaultConfig(Object value) {
         this.value = value;

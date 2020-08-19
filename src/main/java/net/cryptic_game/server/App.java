@@ -37,5 +37,4 @@ public class App {
         loggerConfig.setLevel(level);
         ctx.updateLoggers();
     }
-
 }
