@@ -3,16 +3,13 @@ package net.cryptic_game.server.user;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.sql.SqlService;
+import org.hibernate.Transaction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NoResultException;
 import javax.persistence.Table;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
@@ -49,57 +46,34 @@ public class Session implements Serializable {
     public Session() {
     }
 
-    public static Session create(User user) {
-        Session newSession = new Session(UUID.randomUUID(), UUID.randomUUID(), user,
+    public static Session create(final User user) {
+        final Session newSession = new Session(UUID.randomUUID(), UUID.randomUUID(), user,
                 new Date(Calendar.getInstance().getTime().getTime()), true);
 
-        org.hibernate.Session session = SqlService.getInstance().openSession();
-        session.beginTransaction();
-
-        session.save(newSession);
-
-        session.getTransaction().commit();
-        session.close();
-
-        return newSession;
+        try (org.hibernate.Session session = SqlService.getInstance().openSession()) {
+            final Transaction transaction = session.getTransaction();
+            session.save(newSession);
+            transaction.commit();
+            return newSession;
+        }
     }
 
-    public static Session get(UUID token) {
-        org.hibernate.Session session = SqlService.getInstance().openSession();
-
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<Session> criteria = builder.createQuery(Session.class);
-        Root<Session> from = criteria.from(Session.class);
-
-        criteria.select(from);
-        criteria.where(builder.equal(from.get("token"), token));
-        TypedQuery<Session> typed = session.createQuery(criteria);
-
-        Session s;
-
-        try {
-            s = typed.getSingleResult();
+    public static Session get(final UUID token) {
+        try (org.hibernate.Session session = SqlService.getInstance().openSession()) {
+            return session.createQuery("select object (s) from Session  s where s.token = :token", Session.class)
+                    .setParameter("token", token)
+                    .getSingleResult();
         } catch (NoResultException e) {
             return null;
-        } finally {
-            session.close();
         }
-
-        return s;
     }
 
-    public static List<Session> getSessionsOfUser(User user) {
-        org.hibernate.Session session = SqlService.getInstance().openSession();
-
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<Session> criteria = builder.createQuery(Session.class);
-        Root<Session> from = criteria.from(Session.class);
-
-        criteria.select(from);
-        criteria.where(builder.equal(from.get("user"), user.getUUID()));
-        TypedQuery<Session> typed = session.createQuery(criteria);
-
-        return typed.getResultList();
+    public static List<Session> getSessionsOfUser(final User user) {
+        try (org.hibernate.Session session = SqlService.getInstance().openSession()) {
+            return session.createQuery("select object(s) from Session s where s.user = :userId", Session.class)
+                    .setParameter("userId", user.getUUID())
+                    .getResultList();
+        }
     }
 
     public UUID getUUID() {
@@ -124,23 +98,19 @@ public class Session implements Serializable {
 
     public void breakSession() {
         this.valid = false;
-        org.hibernate.Session session = SqlService.getInstance().openSession();
-        session.beginTransaction();
-
-        session.update(this);
-
-        session.getTransaction().commit();
-        session.close();
+        try (org.hibernate.Session session = SqlService.getInstance().openSession()) {
+            final Transaction transaction = session.beginTransaction();
+            session.update(this);
+            transaction.commit();
+        }
     }
 
     public void delete() {
-        org.hibernate.Session session = SqlService.getInstance().openSession();
-        session.beginTransaction();
-
-        session.delete(this);
-
-        session.getTransaction().commit();
-        session.close();
+        try (org.hibernate.Session session = SqlService.getInstance().openSession()) {
+            final Transaction transaction = session.beginTransaction();
+            session.delete(this);
+            transaction.commit();
+        }
     }
 
     public String toString() {
