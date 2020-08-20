@@ -26,10 +26,10 @@ Run it with `java -jar target/server-0.1.0-jar-with-dependencies.jar` .
 | STORAGE_LOCATION | data/            |
 | SESSION_EXPIRE   | 172800           |
 | SQL_SERVER_TYPE  | [MARIADB_10_03](https://github.com/cryptic-game/server/blob/master/src/main/java/net/cryptic_game/server/sql/SqlServerType.java#L11-L14)    |
-| SQL_LOCATION     | //localhost:3306 |
-| SQL_USERNAME     | cryptic          |
-| SQL_PASSWORD     | cryptic          |
-| SQL_DATABASE     | cryptic          |
+| SQL_SERVER_LOCATION     | //localhost:3306 |
+| SQL_SERVER_USERNAME     | cryptic          |
+| SQL_SERVER_PASSWORD     | cryptic          |
+| SQL_SERVER_DATABASE     | cryptic          |
 | RESPONSE_TIMEOUT | 20               |
 | PRODUCTIVE       | true             |
 | LOG_LEVEL        | INFO             |
