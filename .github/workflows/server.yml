@@ -15,9 +15,3 @@ jobs:
           java-version: 1.11
       - name: Build with Maven
         run: mvn clean validate compile
-      - name: Test with Maven
-        run: mvn org.jacoco:jacoco-maven-plugin:prepare-agent test
-      - name: SonarCloud scan
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: mvn sonar:sonar -Dsonar.projectKey=cryptic-game_server -Dsonar.organization=cryptic-game -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
