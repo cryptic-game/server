@@ -32,7 +32,8 @@ Run it with `java -jar target/server-0.1.0-jar-with-dependencies.jar` .
 | SQL_SERVER_DATABASE     | cryptic          |
 | RESPONSE_TIMEOUT | 20               |
 | PRODUCTIVE       | true             |
-| LOG_LEVEL        | INFO             |
+| LOG_LEVEL        | WARN             |
+| SENTRY_DSN       |                  |
 
 ## Docker
 
