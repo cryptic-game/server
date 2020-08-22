@@ -51,7 +51,7 @@ public class Session implements Serializable {
                 new Date(Calendar.getInstance().getTime().getTime()), true);
 
         try (org.hibernate.Session session = SqlService.getInstance().openSession()) {
-            final Transaction transaction = session.getTransaction();
+            final Transaction transaction = session.beginTransaction();
             session.save(newSession);
             transaction.commit();
             return newSession;
@@ -60,7 +60,7 @@ public class Session implements Serializable {
 
     public static Session get(final UUID token) {
         try (org.hibernate.Session session = SqlService.getInstance().openSession()) {
-            return session.createQuery("select object (s) from Session  s where s.token = :token", Session.class)
+            return session.createQuery("select object (s) from Session s where s.token = :token", Session.class)
                     .setParameter("token", token)
                     .getSingleResult();
         } catch (NoResultException e) {
