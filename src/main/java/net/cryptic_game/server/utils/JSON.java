@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class JSON {
 
-    private JSONObject obj;
+    private final JSONObject obj;
 
     public JSON(JSONObject obj) {
         this.obj = obj;

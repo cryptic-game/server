@@ -22,8 +22,8 @@ public enum ServerError {
     UNKNOWN_SETTING("unknown setting"),
     UNSUPPORTED_PARAMETER_SIZE("unsupported parameter size");
 
-    private JSONObject response;
-    private String message;
+    private final JSONObject response;
+    private final String message;
 
     ServerError(String message) {
         this.response = error(message);
