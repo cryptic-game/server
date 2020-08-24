@@ -15,4 +15,8 @@ RUN set -o errexit -o nounset \
 WORKDIR ${DATA_DIR}
 COPY --from=builder /app/target/server-0.1.0-jar-with-dependencies.jar ${CRYPTIC_HOME}/server.jar
 
+EXPOSE 1239
+EXPOSE 8080
+EXPOSE 80
+
 ENTRYPOINT ["java", "-jar", "/opt/cryptic/server.jar"]
