@@ -240,7 +240,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                     return;
                 }
 
-                if (name.length() > 256) {
+                if (!name.matches("^[a-zA-Z0-9\\-_.]{2,32}$")) {
                     sendWebsocket(channel, UNSUPPORTED_FORMAT);
                     return;
                 }
