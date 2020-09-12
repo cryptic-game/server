@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class MicroService {
     private static final Map<UUID, Request> open = new HashMap<>();
 
     // online microservices
-    private static final List<MicroService> services = new ArrayList<>();
+    private static final List<MicroService> services = Collections.synchronizedList(new ArrayList<>());
 
     private final String name; // name of ms
     private final Channel channel; // socket-channel of ms
