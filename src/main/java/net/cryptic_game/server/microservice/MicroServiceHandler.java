@@ -9,13 +9,20 @@ import net.cryptic_game.server.utils.JSONBuilder;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
-import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.error.ServerError.MISSING_ACTION;
+import static net.cryptic_game.server.error.ServerError.MISSING_PARAMETERS;
+import static net.cryptic_game.server.error.ServerError.UNKNOWN_ACTION;
+import static net.cryptic_game.server.error.ServerError.UNSUPPORTED_FORMAT;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
+
+    private static final Logger log = LoggerFactory.getLogger(MicroServiceHandler.class);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) {
@@ -119,4 +126,9 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
         MicroService.unregister(ctx.channel());
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("Error in channel " + ctx.toString(), cause);
+        ctx.close().syncUninterruptibly();
+    }
 }
