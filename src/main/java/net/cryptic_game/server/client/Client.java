@@ -30,8 +30,9 @@ public class Client {
     }
 
     public static Client getClient(Channel channel) {
+        if (channel == null) return null;
         for (Client client : clients) {
-            if (client.getChannel().equals(channel)) {
+            if (channel.equals(client.getChannel())) {
                 return client;
             }
         }
@@ -41,6 +42,7 @@ public class Client {
 
     public static Client getClient(User user) {
         for (Client client : clients) {
+            if (client.getUser() == null) continue;
             if (client.getUser().getUUID().equals(user.getUUID())) {
                 return client;
             }
@@ -75,6 +77,7 @@ public class Client {
     }
 
     public static int getOnlineCount() {
+        clients.removeIf(client -> client.getChannel() == null);
         return clients.size();
     }
 
