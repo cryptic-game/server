@@ -107,11 +107,7 @@ public class MicroService {
         User userAccount = User.get(user);
 
         if (userAccount != null) {
-            Client clientOfUser = Client.getClient(userAccount);
-
-            if (clientOfUser != null) {
-                clientOfUser.send(data);
-            }
+            Client.getClients(userAccount).forEach(client -> client.send(data));
         }
     }
 

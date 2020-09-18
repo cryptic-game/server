@@ -6,7 +6,9 @@ import net.cryptic_game.server.user.User;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static net.cryptic_game.server.socket.SocketServerUtils.sendHTTP;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
@@ -40,15 +42,16 @@ public class Client {
         return null;
     }
 
-    public static Client getClient(User user) {
+    public static Set<Client> getClients(User user) {
+        final Set<Client> returnClients = new HashSet<>();
         for (Client client : clients) {
             if (client.getUser() == null) continue;
             if (client.getUser().getUUID().equals(user.getUUID())) {
-                return client;
+                returnClients.add(client);
             }
         }
 
-        return null;
+        return returnClients;
     }
 
     private static boolean existsClient(Channel channel) {
