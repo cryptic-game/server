@@ -5,17 +5,17 @@ import net.cryptic_game.server.user.Session;
 import net.cryptic_game.server.user.User;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static net.cryptic_game.server.socket.SocketServerUtils.sendHTTP;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 
 public class Client {
 
-    private static final List<Client> clients = new ArrayList<>();
+    private static final List<Client> clients = new CopyOnWriteArrayList<>();
     private final Channel channel;
     private final ClientType type;
     private User user;
