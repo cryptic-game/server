@@ -7,19 +7,10 @@ import java.util.Map;
 
 public class JSONBuilder {
 
-    private Map<String, Object> jsonMap;
+    private final Map<String, Object> jsonMap;
 
     private JSONBuilder() {
         jsonMap = new HashMap<>();
-    }
-
-    public JSONBuilder add(String key, Object value) {
-        jsonMap.put(key, value);
-        return this;
-    }
-
-    public JSONObject build() {
-        return new JSONObject(jsonMap);
     }
 
     public static JSONBuilder anJSON() {
@@ -32,5 +23,14 @@ public class JSONBuilder {
 
     public static JSONObject error(String message) {
         return simple("error", message);
+    }
+
+    public JSONBuilder add(String key, Object value) {
+        jsonMap.put(key, value);
+        return this;
+    }
+
+    public JSONObject build() {
+        return new JSONObject(jsonMap);
     }
 }

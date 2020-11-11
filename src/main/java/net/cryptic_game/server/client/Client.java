@@ -1,22 +1,25 @@
 package net.cryptic_game.server.client;
 
 import io.netty.channel.Channel;
+import net.cryptic_game.server.user.Session;
 import net.cryptic_game.server.user.User;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static net.cryptic_game.server.socket.SocketServerUtils.sendHTTP;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendWebsocket;
 
 public class Client {
 
-    private static List<Client> clients = new ArrayList<>();
-
+    private static final List<Client> clients = new CopyOnWriteArrayList<>();
+    private final Channel channel;
+    private final ClientType type;
     private User user;
-    private Channel channel;
-    private ClientType type;
+    private Session session;
 
     private Client(User user, Channel channel, ClientType type) {
         this.user = user;
@@ -28,36 +31,10 @@ public class Client {
         this(null, channel, type);
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-        if (user != null) {
-            user.updateLast();
-        }
-    }
-
-    public boolean isValid() {
-        return getUser() != null;
-    }
-
-    public void send(JSONObject data) {
-        if (type.equals(ClientType.HTTP)) {
-            sendHTTP(channel, data);
-        } else if (type.equals(ClientType.WEBSOCKET)) {
-            sendWebsocket(channel, data);
-        }
-    }
-
     public static Client getClient(Channel channel) {
+        if (channel == null) return null;
         for (Client client : clients) {
-            if (client.getChannel().equals(channel)) {
+            if (channel.equals(client.getChannel())) {
                 return client;
             }
         }
@@ -65,14 +42,16 @@ public class Client {
         return null;
     }
 
-    public static Client getClient(User user) {
+    public static Set<Client> getClients(User user) {
+        final Set<Client> returnClients = new HashSet<>();
         for (Client client : clients) {
+            if (client.getUser() == null) continue;
             if (client.getUser().getUUID().equals(user.getUUID())) {
-                return client;
+                returnClients.add(client);
             }
         }
 
-        return null;
+        return returnClients;
     }
 
     private static boolean existsClient(Channel channel) {
@@ -92,10 +71,16 @@ public class Client {
 
         if (client != null) {
             client.setUser(null);
+
+            if (client.getSession() != null) {
+                client.getSession().delete();
+                client.setSession(null);
+            }
         }
     }
 
     public static int getOnlineCount() {
+        clients.removeIf(client -> client.getChannel() == null);
         return clients.size();
     }
 
@@ -109,6 +94,41 @@ public class Client {
         Client client = getClient(channel);
         if (client != null) {
             clients.remove(client);
+        }
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+        if (user != null) {
+            user.updateLast();
+        }
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public boolean isValid() {
+        return getUser() != null;
+    }
+
+    public void send(JSONObject data) {
+        if (type.equals(ClientType.HTTP)) {
+            sendHTTP(channel, data);
+        } else if (type.equals(ClientType.WEBSOCKET)) {
+            sendWebsocket(channel, data);
         }
     }
 

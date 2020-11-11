@@ -17,11 +17,13 @@ public enum ServerError {
     INVALID_TOKEN("invalid token"),
     MISSING_PARAMETERS("missing parameters"),
     UNEXPECTED_ERROR("unexpected error"),
-    UNKNOWN_MICROSERVICE("unknown microservice");
+    UNKNOWN_MICROSERVICE("unknown microservice"),
+    NOT_FOUND("not found"),
+    UNKNOWN_SETTING("unknown setting"),
+    UNSUPPORTED_PARAMETER_SIZE("unsupported parameter size");
 
-
-    private JSONObject response;
-    private String message;
+    private final JSONObject response;
+    private final String message;
 
     ServerError(String message) {
         this.response = error(message);

@@ -9,13 +9,20 @@ import net.cryptic_game.server.utils.JSONBuilder;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
-import static net.cryptic_game.server.error.ServerError.*;
+import static net.cryptic_game.server.error.ServerError.MISSING_ACTION;
+import static net.cryptic_game.server.error.ServerError.MISSING_PARAMETERS;
+import static net.cryptic_game.server.error.ServerError.UNKNOWN_ACTION;
+import static net.cryptic_game.server.error.ServerError.UNSUPPORTED_FORMAT;
 import static net.cryptic_game.server.socket.SocketServerUtils.sendRaw;
 
 public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
+
+    private static final Logger log = LoggerFactory.getLogger(MicroServiceHandler.class);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) {
@@ -33,11 +40,11 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
 
         MicroService ms = MicroService.get(channel);
 
-        if (ms != null && ms.send(obj)) {
+        String action = json.get("action");
+
+        if (ms != null && ms.send(obj) && action == null) {
             return;
         }
-
-        String action = json.get("action");
 
         if (action == null) {
             sendRaw(channel, MISSING_ACTION);
@@ -89,18 +96,18 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
                 User user = User.get(data.getUUID("user"));
 
                 JSONBuilder result = JSONBuilder.anJSON()
-                        .add("tag", tag.toString())
+                        .add("tag", tag.toString());
+
+                JSONBuilder resultData = JSONBuilder.anJSON()
                         .add("valid", user != null);
 
                 if (user != null) {
-                    JSONObject resultData = JSONBuilder.anJSON()
-                            .add("uuid", user.getUUID().toString())
+                    resultData.add("uuid", user.getUUID().toString())
                             .add("name", user.getName())
-                            .add("mail", user.getMail())
                             .add("created", user.getCreated().getTime())
                             .add("last", user.getLast().getTime()).build();
-                    result.add("data", resultData);
                 }
+                result.add("data", resultData.build());
 
                 sendRaw(channel, result.build());
 
@@ -119,4 +126,9 @@ public class MicroServiceHandler extends SimpleChannelInboundHandler<String> {
         MicroService.unregister(ctx.channel());
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("Error in channel " + ctx.toString(), cause);
+        ctx.close().syncUninterruptibly();
+    }
 }

@@ -20,8 +20,8 @@ public class SocketSever {
     private static final boolean EPOLL = Epoll.isAvailable();
     private static final Logger logger = LoggerFactory.getLogger(SocketSever.class);
 
-    private int port;
-    private String name;
+    private final int port;
+    private final String name;
 
     public SocketSever(String name, String host, int port, ChannelInitializer<SocketChannel> initializer, boolean mainThread) {
         this.name = name;

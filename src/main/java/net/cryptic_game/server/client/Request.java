@@ -7,10 +7,10 @@ import java.util.UUID;
 
 public class Request {
 
-    private Client client;
-    private UUID tag;
-    private String microService;
-    private JSONObject data;
+    private final Client client;
+    private final UUID tag;
+    private final String microService;
+    private final JSONObject data;
 
     public Request(Client client, UUID tag, String microService, JSONObject data) {
         this.client = client;
