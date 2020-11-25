@@ -158,6 +158,26 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                         sendWebsocket(channel, jsonBuilder.build());
                         return;
                     }
+                    case "password": {
+                        String password = json.get("password");
+                        String newPassword = json.get("new");
+
+                        if (password == null || newPassword == null) {
+                            sendWebsocket(channel, MISSING_PARAMETERS);
+                            return;
+                        }
+
+                        if (client.getUser().changePassword(password, newPassword)) {
+                            Session.getSessionsOfUser(client.getUser()).parallelStream().forEach(Session::delete);
+                            Session session = Session.create(client.getUser());
+                            client.setSession(session);
+                            SocketServerUtils.sendWebsocket(channel, simple("token", session.getToken().toString()));
+                        } else {
+                            sendWebsocket(channel, PERMISSION_DENIED);
+                        }
+
+                        break;
+                    }
                     default: {
                         sendWebsocket(channel, UNKNOWN_ACTION);
                         break;
@@ -257,26 +277,6 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 }
 
                 login(channel, client, user);
-
-                break;
-            }
-            case "password": {
-                String name = json.get("name");
-                String password = json.get("password");
-                String newPassword = json.get("new");
-
-                if (name == null || password == null || newPassword == null) {
-                    sendWebsocket(channel, MISSING_PARAMETERS);
-                    return;
-                }
-
-                User user = User.get(name);
-
-                if (user != null && user.changePassword(password, newPassword)) {
-                    SocketServerUtils.sendWebsocket(channel, simple("success", true));
-                } else {
-                    sendWebsocket(channel, PERMISSION_DENIED);
-                }
 
                 break;
             }
