@@ -16,7 +16,6 @@ import javax.persistence.criteria.Root;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Entity
 @Table(name = "user")
@@ -102,7 +101,7 @@ public class User {
     }
 
     public static boolean isValidPassword(String password) {
-        return Pattern.compile("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}").matcher(password).find();
+        return password.matches("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,64}");
     }
 
     private static String hashPassword(String toHash) {
