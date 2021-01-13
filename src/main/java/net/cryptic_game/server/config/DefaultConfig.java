@@ -9,7 +9,7 @@ public enum DefaultConfig {
 
     WEBSOCKET_HOST("0.0.0.0"),
     WEBSOCKET_PORT(80),
-    MSSOCKET_HOST("127.0.0.1"),
+    MSSOCKET_HOST("0.0.0.0"),
     MSSOCKET_PORT(1239),
     HTTP_PORT(8080),
     AUTH_ENABLED(true),
