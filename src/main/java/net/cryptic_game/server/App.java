@@ -1,6 +1,5 @@
 package net.cryptic_game.server;
 
-import io.sentry.Sentry;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
 import net.cryptic_game.server.microservice.MicroServiceServerInitializer;
@@ -20,10 +19,6 @@ public class App {
 
     public static void main(String[] args) {
         setLoglevel(Level.getLevel(Config.get(DefaultConfig.LOG_LEVEL)));
-
-        if (!Config.get(DefaultConfig.SENTRY_DSN).equals("")) {
-            Sentry.init(Config.get(DefaultConfig.SENTRY_DSN));
-        }
 
         final SqlService sqlService = SqlService.getInstance();
         sqlService.addEntity(User.class);
