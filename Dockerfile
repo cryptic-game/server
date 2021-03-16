@@ -1,10 +1,13 @@
-FROM maven:3.6.3-adoptopenjdk-11 AS builder
+ARG JAVA_VERSION=11
+ARG JVM_IMPL=hotspot
+
+FROM maven:3-adoptopenjdk-${JAVA_VERSION} AS builder
 
 WORKDIR /app
 COPY . /app/
 RUN mvn clean install
 
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM adoptopenjdk:${JAVA_VERSION}-jre-${JVM_IMPL}
 
 ENV CRYPTIC_HOME /opt/cryptic
 ENV DATA_DIR /data
