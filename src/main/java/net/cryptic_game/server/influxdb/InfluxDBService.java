@@ -23,7 +23,7 @@ public class InfluxDBService {
                         .bucket(Config.get(DefaultConfig.INFLUXDB_BUCKET))
                         .authenticate(Config.get(DefaultConfig.INFLUXDB_USERNAME), Config.get(DefaultConfig.INFLUXDB_PASSWORD).toCharArray())
                         .build()
-        ).setLogLevel(LogLevel.valueOf(Config.get(DefaultConfig.LOG_LEVEL)));
+        ).setLogLevel(LogLevel.NONE);
 
         this.writeApi = this.influxDBClient.getWriteApi();
     }
