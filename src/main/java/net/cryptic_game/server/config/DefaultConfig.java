@@ -24,8 +24,7 @@ public enum DefaultConfig {
     INFLUXDB_HOST("http://127.0.0.1:8086"),
     INFLUXDB_ORG("cryptic"),
     INFLUXDB_BUCKET("cryptic"),
-    INFLUXDB_USERNAME("cryptic"),
-    INFLUXDB_PASSWORD("cryptic"),
+    INFLUXDB_TOKEN("cryptic"),
 
     MYSQL_PORT(3306),
     PRODUCTIVE(true),

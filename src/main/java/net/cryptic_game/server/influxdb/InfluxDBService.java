@@ -20,8 +20,8 @@ public class InfluxDBService {
                 InfluxDBClientOptions.builder()
                         .url(Config.get(DefaultConfig.INFLUXDB_HOST))
                         .org(Config.get(DefaultConfig.INFLUXDB_ORG))
+                        .authenticateToken(Config.get(DefaultConfig.INFLUXDB_TOKEN).toCharArray())
                         .bucket(Config.get(DefaultConfig.INFLUXDB_BUCKET))
-                        .authenticate(Config.get(DefaultConfig.INFLUXDB_USERNAME), Config.get(DefaultConfig.INFLUXDB_PASSWORD).toCharArray())
                         .build()
         ).setLogLevel(LogLevel.NONE);
 
