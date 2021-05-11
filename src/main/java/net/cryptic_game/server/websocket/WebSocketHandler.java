@@ -1,5 +1,6 @@
 package net.cryptic_game.server.websocket;
 
+import com.influxdb.client.domain.WritePrecision;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -8,6 +9,8 @@ import net.cryptic_game.server.client.Client;
 import net.cryptic_game.server.client.ClientType;
 import net.cryptic_game.server.config.Config;
 import net.cryptic_game.server.config.DefaultConfig;
+import net.cryptic_game.server.influxdb.InfluxDBService;
+import net.cryptic_game.server.influxdb.InfluxDBUserEndpointRequest;
 import net.cryptic_game.server.microservice.MicroService;
 import net.cryptic_game.server.socket.SocketServerUtils;
 import net.cryptic_game.server.user.Session;
@@ -20,8 +23,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static net.cryptic_game.server.error.ServerError.INVALID_PASSWORD;
 import static net.cryptic_game.server.error.ServerError.INVALID_TOKEN;
@@ -187,6 +192,12 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
                 return;
             }
 
+            InfluxDBService.getInstance().getWriteApi().writeMeasurement(
+                    WritePrecision.MS,
+                    new InfluxDBUserEndpointRequest(
+                            client.getUser().getUUID().toString(),
+                            Instant.now(),
+                            microService.getName() + "/" + String.join("/", endpoint)));
             microService.receive(client, endpoint, data, tag);
 
             return;

@@ -21,6 +21,12 @@ public enum DefaultConfig {
     SQL_SERVER_PASSWORD("cryptic"),
     SQL_SERVER_DATABASE("cryptic"),
 
+    INFLUXDB_HOST("http://127.0.0.1:8086"),
+    INFLUXDB_ORG("cryptic"),
+    INFLUXDB_BUCKET("cryptic"),
+    INFLUXDB_USERNAME("cryptic"),
+    INFLUXDB_PASSWORD("cryptic"),
+
     MYSQL_PORT(3306),
     PRODUCTIVE(true),
     SESSION_EXPIRE(60 * 60 * 24 * 2), // 2 days
