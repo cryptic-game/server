@@ -62,8 +62,3 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Check manifest
-        if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          docker buildx imagetools inspect crypticcp/cryptic-game-server:${{ steps.docker_meta.outputs.version }}
